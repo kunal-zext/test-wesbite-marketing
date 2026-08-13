@@ -1,0 +1,2540 @@
+/*
+ * Zext Digital — Studio landing page.
+ * Ported 1:1 from the bundled design artifact, whose every rule lived in an
+ * inline `style` attribute. Hoisting them into a scoped sheet keeps the served
+ * HTML small, restores real :hover/:focus states (the artifact faked those with
+ * a non-standard `style-hover` attribute) and lets the browser cache the CSS.
+ *
+ * Everything is namespaced under .zx so this page cannot leak into the rest of
+ * the site, which runs a light theme on Tailwind tokens.
+ */
+
+.zx {
+  --bg: #0a0a0b;
+  --bg2: #0f0f11;
+  --ink: #f3f3f0;
+  --dim: #8b8b85;
+  --line: rgba(243, 243, 240, 0.13);
+
+  /*
+   * Palette follows the roles the rest of the site already uses:
+   *
+   *   --acc      flat accent for small type, rules, rings and progress bars.
+   *              Periwinkle — the dominant tone inside the site's hero gradient,
+   *              so it reads as the same family without the teal cast a flat
+   *              #8fe0ff gives at small sizes. 6.5:1 on the page background.
+   *   --acc-fill loud accent fills (service-row wipe, selected chip, badges),
+   *              carrying white labels at 5.4:1.
+   *   --brand    brand primary. Glows and button rings only; the site never
+   *              uses it as a body/accent text colour.
+   *   --surface  brand tertiary (`bg-tertiary`). The button surface, matching
+   *              the home page CTA.
+   *
+   * Large emphasis words don't use any of these — they reuse the site's own
+   * .hero-title-gradient-animated class, the same treatment as the home page
+   * headline, so the two pages animate identically.
+   *
+   * The WebGL hero reads --brand off this element at runtime — the fluid is lit
+   * in brand primary, independent of the flat accent above.
+   */
+  --acc: #a78bfa;
+  --acc-rgb: 167 123 250;
+  --acc-fill: #7a41f5;
+  --onacc: #ffffff;
+  --brand: #8c52ff;
+  --brand-rgb: 140 82 255;
+  --surface: #11173a;
+  /* The button outline, matching the ring on the site's Book Consultation CTA. */
+  --ring: linear-gradient(100deg, #b8a9ff 0%, #8c52ff 45%, #6a7cff 100%);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --pad: clamp(16px, 4vw, 44px);
+  --wide: 1780px;
+  /* Height of the fixed header. The hero overlaps it, so anything that needs to
+   * sit clear of the nav has to budget for this rather than assume it. */
+  --navh: 74px;
+
+  position: relative;
+  width: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.zx *,
+.zx *::before,
+.zx *::after {
+  box-sizing: border-box;
+}
+/* Zero specificity for the same reason as the input/button reset below: written
+ * as `.zx a` this outranks single-class rules like .zx-btn--ghost, which then
+ * silently lose their own colour and :hover colour. */
+:where(.zx) a {
+  color: inherit;
+  text-decoration: none;
+}
+.zx ::selection {
+  background: var(--acc-fill);
+  color: var(--onacc);
+}
+/*
+ * Zero-specificity reset (:where contributes none), so any component rule below
+ * can set its own colour. Written as `.zx button` this would outrank single-class
+ * selectors like .zx-sticker and silently win the colour cascade.
+ */
+:where(.zx) :where(input, button) {
+  font: inherit;
+  color: inherit;
+}
+.zx button {
+  cursor: pointer;
+}
+
+/* Shared type ramps -------------------------------------------------- */
+.zx-mono {
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.zx-display {
+  font-family: var(--font-grotesk), sans-serif;
+  text-transform: uppercase;
+}
+.zx-serif {
+  font-family: var(--font-instrument), serif;
+  font-style: italic;
+  font-weight: 400;
+}
+.zx em.zx-serif {
+  color: var(--acc);
+}
+/*
+ * The site's gradient class ships line-height:1.15 for the home page headline.
+ * This page's display type is set much tighter (0.86 in the hero), so inherit
+ * the surrounding leading instead of letting the utility inflate the line box.
+ */
+.zx .hero-title-gradient-animated {
+  line-height: inherit;
+}
+
+/* Keyframes ---------------------------------------------------------- */
+@keyframes zx-marq {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+@keyframes zx-grain {
+  0% {
+    transform: translate(0, 0);
+  }
+  12% {
+    transform: translate(-4%, -5%);
+  }
+  25% {
+    transform: translate(-8%, 4%);
+  }
+  37% {
+    transform: translate(5%, -8%);
+  }
+  50% {
+    transform: translate(-4%, 9%);
+  }
+  62% {
+    transform: translate(9%, 2%);
+  }
+  75% {
+    transform: translate(2%, -6%);
+  }
+  87% {
+    transform: translate(-7%, 3%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+@keyframes zx-blink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0.18;
+  }
+}
+@keyframes zx-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(7px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zx *,
+  .zx *::before,
+  .zx *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Grain + cursor ----------------------------------------------------- */
+/* The artifact painted 128x128 of random pixels into a canvas on mount. An
+ * inline feTurbulence data URI is the same look for zero JS and zero main
+ * thread work, so the overlay costs nothing at startup. */
+.zx-grain {
+  position: fixed;
+  inset: -60px;
+  z-index: 9997;
+  pointer-events: none;
+  opacity: 0.13;
+  mix-blend-mode: overlay;
+  animation: zx-grain 1.1s steps(1) infinite;
+  background-repeat: repeat;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+.zx-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: difference;
+  transition: opacity 0.5s;
+}
+.zx-cring {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border: 1px solid rgba(243, 243, 240, 0.55);
+  border-radius: 50%;
+}
+.zx-cdot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--acc);
+}
+.zx-clabel {
+  position: absolute;
+  transform: translate(26px, 14px) scale(0.6);
+  opacity: 0;
+  font: 500 10px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--acc);
+  white-space: nowrap;
+  transition:
+    opacity 0.35s,
+    transform 0.5s var(--ease);
+}
+/* Only hide the native cursor once the custom one is actually live. */
+@media (hover: hover) and (pointer: fine) {
+  .zx[data-cursor="on"],
+  .zx[data-cursor="on"] * {
+    cursor: none;
+  }
+  .zx[data-cursor="on"] input {
+    cursor: text;
+  }
+}
+
+/* Preloader ---------------------------------------------------------- */
+/*
+ * A greeting in a different language every beat, then the whole panel leaves
+ * upward behind a curved trailing edge.
+ *
+ * The curve is a pseudo-element sitting directly beneath the panel rather than
+ * a border-radius on the panel itself: while it is up the panel has to cover
+ * the viewport squarely, and only the edge it departs on should be round. The
+ * overflow on the wrapper keeps that shape hidden until the panel starts to
+ * move.
+ */
+.zx-pre {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  overflow: hidden;
+}
+/*
+ * The page's own background, not the reference's flat #000. Theirs sits on a
+ * white site where black is the contrast; here it would leave the panel a
+ * shade darker than everything it uncovers, so the reveal reads as a slab
+ * lifting off rather than the page arriving.
+ */
+.zx-prescreen {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  will-change: transform;
+}
+.zx-prescreen::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 15vh;
+  background: var(--bg);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+}
+.zx-prewords {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+/* All of them stacked in one cell; only the live one is displayed. */
+.zx-preword {
+  grid-area: 1 / 1;
+  position: relative;
+  display: none;
+  padding-right: 0.44em;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.3rem, 8vw, 7rem);
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+}
+.zx-preword[data-on="1"] {
+  display: block;
+}
+/* Square rather than a bullet — the reference's mark, carried over in our
+   accent instead of its acid green. */
+.zx-predot {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 0.15em;
+  height: 0.15em;
+  margin-top: -0.075em;
+  background: var(--acc);
+}
+
+
+/* Nav ---------------------------------------------------------------- */
+.zx-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px var(--pad);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 11, 0.72),
+    rgba(10, 10, 11, 0)
+  );
+  transition: transform 0.6s var(--ease);
+}
+.zx-navlogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+}
+/* The real mark carries its own colour, so it replaces the design's accent
+ * tile rather than sitting inside one — a blue gradient on a purple chip
+ * fights itself. Height-locked with auto width so the SVG keeps its ratio. */
+.zx-navmark {
+  display: block;
+  height: 30px;
+  width: auto;
+  flex: none;
+}
+.zx-navlinks {
+  display: none;
+  align-items: center;
+  gap: clamp(14px, 2vw, 30px);
+  font: 500 11px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.zx-navlink {
+  color: var(--dim);
+  transition: color 0.4s var(--ease);
+}
+.zx-navlink:hover {
+  color: var(--ink);
+}
+.zx-navtools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* Scoped to .zx-nav so it outranks .zx-btn's own `display`, which is declared
+ * further down the sheet and would otherwise leak the CTA onto mobile. */
+.zx-nav .zx-navcta {
+  display: none;
+}
+/*
+ * The source design hid both the links and the CTA below 900px, which left
+ * tablets with a bare logo and no way to navigate or convert. The CTA is the
+ * more valuable of the two, so it comes back first and the links follow once
+ * there is room for all four without crowding the mark.
+ */
+@media (min-width: 360px) {
+  .zx-nav .zx-navcta {
+    display: inline-flex;
+  }
+}
+@media (min-width: 768px) {
+  .zx-navlinks {
+    display: flex;
+  }
+}
+
+/* Hero --------------------------------------------------------------- */
+.zx-hero {
+  position: relative;
+  min-height: 100vh;
+  /* svh is the viewport with mobile toolbars shown, so the hero does not jump
+   * as they hide and reveal on scroll. Ignored by browsers without support,
+   * which fall back to the vh above. */
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  background: radial-gradient(130% 95% at 50% 35%, #17191c 0%, #0a0a0b 68%);
+}
+.zx-fluid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.zx-herofade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 11, 0.55) 0%,
+    rgba(10, 10, 11, 0) 28%,
+    rgba(10, 10, 11, 0) 55%,
+    rgba(10, 10, 11, 0.86) 100%
+  );
+}
+.zx-heroinner {
+  position: relative;
+  /*
+   * Budget the nav explicitly, then add the breathing room on top. Written as a
+   * plain padding it is measured from the top of the hero, which the nav covers
+   * the first 74px of — so on a laptop the padding resolved to 92px and left
+   * only 18px of actual clearance, while a large screen got 77px. This controls
+   * the clearance itself, so it stays honest at every height.
+   */
+  padding: calc(var(--navh) + clamp(26px, min(7vh, 6vw), 88px)) var(--pad)
+    clamp(20px, min(4.5vw, 4vh), 52px);
+  width: 100%;
+  max-width: var(--wide);
+  margin: 0 auto;
+}
+/*
+ * The hero is bottom-aligned inside 100vh, which reads well on a wide screen
+ * where the display type nearly fills it. On a portrait tablet or phone the
+ * content only covers about half the viewport and the rest opens up as dead
+ * space above the eyebrow. Auto margins take precedence over the parent's
+ * justify-content, so this recentres the block in the room above the ticker
+ * without touching the desktop composition.
+ */
+@media (max-width: 1000px) {
+  .zx-heroinner {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
+.zx-eyebrow {
+  display: flex;
+  align-items: center;
+  /* The source design let this overflow on narrow phones; wrapping keeps the
+   * studio line and the city from colliding under ~420px. */
+  flex-wrap: wrap;
+  row-gap: 6px;
+  gap: 12px;
+  margin-bottom: clamp(12px, min(2.6vw, 2.6vh), 30px);
+  font: 500 10.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.zx-livedot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--acc);
+  animation: zx-blink 2.4s ease-in-out infinite;
+}
+.zx-h1 {
+  margin: 0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  /*
+   * Sized off width alone, as the source design did — the headline is the point
+   * of the hero, so it keeps its full scale on a short screen and the lede and
+   * buttons are allowed to fall below the fold rather than shrink the type to
+   * accommodate them.
+   *
+   * The inner clamp is a floor for small screens: under ~440px the width term
+   * collapses the display type to something that no longer reads as a headline,
+   * so a width-derived minimum takes over, capped where the longest line starts
+   * to run out of room on a narrow phone.
+   */
+  font-size: clamp(clamp(46px, 12.5vw, 56px), 10.4vw, 190px);
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.zx-h1line {
+  display: block;
+}
+
+.zx-h1 em {
+  font-family: var(--font-instrument), serif;
+  font-style: italic;
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: -0.02em;
+  color: var(--acc);
+  padding-right: 0.06em;
+}
+.zx-herobottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(22px, 4vw, 60px);
+  margin-top: clamp(16px, min(3.2vw, 3.2vh), 44px);
+}
+/*
+ * Statement block, not a paragraph. Each line is its own element so it reveals
+ * on its own beat and the ragged right edge does the visual work that a flat
+ * justified-ish block of body copy cannot at this scale.
+ */
+.zx-lede {
+  display: grid;
+  /* Larger than the leading inside a line, so wrapped pairs still read as one
+   * statement rather than merging into a block. */
+  gap: clamp(7px, 0.6vw, 11px);
+  max-width: 62ch;
+}
+.zx-ledeline {
+  margin: 0;
+  font-size: clamp(14px, 1.18vw, 17.5px);
+  line-height: 1.45;
+  color: rgba(243, 243, 240, 0.74);
+  text-wrap: pretty;
+}
+/*
+ * Instrument Serif has a far smaller x-height than Inter, so at a matched
+ * font-size the accent reads as shrunken rather than emphasised. Scale it up to
+ * sit optically level with the sans around it.
+ */
+.zx-ledeline em {
+  font-size: 1.2em;
+  line-height: 1;
+}
+/* The line that points at the button sits forward of the rest. */
+.zx-ledeline--cta {
+  color: rgba(243, 243, 240, 0.95);
+}
+.zx-herobtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+/*
+ * Buttons -------------------------------------------------------------
+ *
+ * Primary is a solid brand-purple pill that lifts on hover; secondary is a
+ * hairline that fills purple from below. That fill-from-below is the same
+ * gesture the five service rows use further down the page, so the two read as
+ * one system rather than two borrowed styles.
+ *
+ * The label sits in the page's own Space Grotesk scale, and the sweep is a
+ * ::before behind it — both are GPU transforms, nothing reflows on hover.
+ */
+.zx-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 17px 30px;
+  border-radius: 100px;
+  font: 500 12px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  background: transparent;
+  transition:
+    transform 0.5s var(--ease),
+    box-shadow 0.5s var(--ease),
+    border-color 0.5s var(--ease),
+    color 0.45s var(--ease);
+}
+/* Keeps the label and glyph above the sweeping fill. */
+.zx-btn > span {
+  position: relative;
+  z-index: 1;
+}
+.zx-btnarrow {
+  font-size: 14px;
+  transition: transform 0.5s var(--ease);
+}
+.zx-btn:hover .zx-btnarrow {
+  transform: translateX(4px);
+}
+
+/*
+ * The gradient ring, drawn as a masked ::after rather than a border so it can
+ * follow the pill radius and sit independent of the sweeping fill underneath.
+ * mask-composite punches the interior out, leaving just the 1px edge.
+ */
+.zx-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--ring);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease);
+}
+
+/*
+ * Primary: brand-tertiary surface, white label, gradient ring always on, with a
+ * purple bloom on hover — the colour story of the site's Book Consultation CTA.
+ * White on --surface is 17:1.
+ */
+.zx-btn--acc {
+  background: var(--surface);
+  color: var(--ink);
+}
+.zx-btn--acc::after {
+  opacity: 0.75;
+}
+.zx-btn--acc:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 34px -10px rgb(var(--brand-rgb) / 0.55);
+}
+.zx-btn--acc:hover::after {
+  opacity: 1;
+}
+/* Opt-in: the diagonal glyph travels diagonally, straight arrows go right. */
+.zx-btn:hover .zx-btnarrow--diag {
+  transform: translate(3px, -3px);
+}
+
+/* Secondary: hairline that fills to the same surface, so hovering it resolves
+ * into the primary's colour rather than introducing a third one. */
+.zx-btn--ghost {
+  border-color: var(--line);
+  color: rgba(243, 243, 240, 0.8);
+}
+.zx-btn--ghost::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--surface);
+  transform: translate3d(0, 101%, 0);
+  transition: transform 0.55s var(--ease);
+}
+.zx-btn--ghost:hover {
+  /* Hand the edge over to the gradient ring as it fades in. */
+  border-color: transparent;
+  color: var(--ink);
+}
+.zx-btn--ghost:hover::before {
+  transform: translate3d(0, 0, 0);
+}
+.zx-btn--ghost:hover::after {
+  opacity: 1;
+}
+
+/* Reversed glyph for the form's Back control. */
+.zx-btn--back .zx-btnarrow {
+  order: -1;
+}
+.zx-btn--back:hover .zx-btnarrow {
+  transform: translateX(-4px);
+}
+.zx-btn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Compact variant for the fixed nav. */
+.zx-btn--sm {
+  padding: 11px 20px;
+  gap: 10px;
+  font-size: 11px;
+}
+
+.zx-ticker {
+  position: relative;
+  margin-top: clamp(24px, 4vw, 48px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+  background: rgba(10, 10, 11, 0.4);
+}
+.zx-tickertrack {
+  display: flex;
+  width: max-content;
+  animation: zx-marq 34s linear infinite;
+  padding: 12px 0;
+}
+.zx-tickergroup {
+  display: flex;
+  gap: 44px;
+  padding-right: 44px;
+  font: 500 11px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(243, 243, 240, 0.62);
+  white-space: nowrap;
+}
+.zx-star {
+  color: var(--acc);
+}
+.zx-scrollhint {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font: 500 9.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(243, 243, 240, 0.42);
+  pointer-events: none;
+}
+.zx-scrollline {
+  display: block;
+  width: 1px;
+  height: 36px;
+  background: linear-gradient(to bottom, rgba(243, 243, 240, 0.5), transparent);
+  animation: zx-bob 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+/*
+ * Only once the lede and the buttons still share a row. Below roughly 1150px
+ * the button row wraps under the copy and grows upward into the hint, which
+ * put "SCROLL" straight through the secondary button.
+ */
+@media (min-width: 1150px) and (min-height: 761px) {
+  .zx-scrollhint {
+    display: flex;
+  }
+}
+
+/* Client marquee ----------------------------------------------------- */
+.zx-logos {
+  position: relative;
+  z-index: 2;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding: clamp(28px, 4vw, 52px) 0;
+  overflow: hidden;
+}
+.zx-logoslabel {
+  text-align: center;
+  margin-bottom: clamp(20px, 2.6vw, 34px);
+  font: 500 10px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.zx-marq {
+  overflow: hidden;
+}
+.zx-marqtrack {
+  display: flex;
+  width: max-content;
+  animation: zx-marq 46s linear infinite;
+}
+.zx-marqgroup {
+  display: flex;
+  gap: clamp(34px, 5vw, 80px);
+  padding-right: clamp(34px, 5vw, 80px);
+  align-items: center;
+  font: 500 clamp(20px, 2.6vw, 40px) / 1 var(--font-grotesk), sans-serif;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: rgba(243, 243, 240, 0.28);
+  white-space: nowrap;
+}
+
+/* Section chrome ----------------------------------------------------- */
+.zx-sec {
+  position: relative;
+  z-index: 2;
+  background: var(--bg);
+  padding: clamp(70px, 9vw, 140px) var(--pad);
+}
+.zx-sec--alt {
+  background: var(--bg2);
+  border-top: 1px solid var(--line);
+}
+.zx-inner {
+  max-width: var(--wide);
+  margin: 0 auto;
+}
+.zx-shead {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: clamp(30px, 4vw, 58px);
+  font: 500 10.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.zx-snum {
+  color: var(--acc);
+}
+.zx-sline {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+/*
+ * Narrow screens: the trailing aside and the title fight for the same row and
+ * both end up wrapping mid-phrase. Drop the aside to its own full-width line
+ * instead. Heads without an aside end on the rule, which the :not() skips.
+ */
+@media (max-width: 720px) {
+  .zx-shead {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .zx-shead > :last-child:not(.zx-sline) {
+    flex: 0 0 100%;
+  }
+}
+
+/* Manifesto + Nerve -------------------------------------------------- */
+.zx-manisec {
+  padding: clamp(90px, 12vw, 190px) var(--pad) clamp(40px, 6vw, 80px);
+}
+.zx-manisec .zx-shead {
+  margin-bottom: clamp(34px, 5vw, 72px);
+}
+.zx-mani {
+  margin: 0;
+  max-width: 22ch;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 500;
+  font-size: clamp(30px, 5.4vw, 96px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.zx-manitail {
+  margin: clamp(28px, 4vw, 52px) 0 0 auto;
+  max-width: 52ch;
+  font-size: clamp(14px, 1.1vw, 17px);
+  line-height: 1.6;
+  color: rgba(243, 243, 240, 0.62);
+  text-wrap: pretty;
+}
+/*
+ * Unclipped, and lifted above its neighbours. The pieces are meant to leave the
+ * screen, so every box between them and the viewport edge has to let them
+ * through — clipping here stopped them at the section boundary. The raised
+ * z-index is what lets them cross the sections above and below on the way out;
+ * at the shared z-index 2 the next section simply painted over them.
+ */
+.zx-nerve {
+  position: relative;
+  z-index: 4;
+  background: var(--bg);
+  padding: 0 var(--pad) clamp(80px, 10vw, 160px);
+}
+/* Behind the glass. The word is hidden until the panes clear off it. */
+.zx-nervewordclip {
+  position: relative;
+  z-index: 0;
+}
+/*
+ * The definition, printed on the glass. Above the panes so it reads as being
+ * on the surface rather than under it, and it breaks up and leaves on the same
+ * wave they do — the sentence is what you have while the pane is intact, and
+ * the word is what is left once it has gone.
+ */
+.zx-glasstext {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  /*
+   * Grid centres the block without making the words flex items. The bottom
+   * padding lifts the sentence off dead centre, because that is where the
+   * crosshair marking the impact point sits — centred, the two collide and the
+   * crosshair reads as a glitch behind the type.
+   */
+  display: grid;
+  place-items: center;
+  padding: 0 clamp(18px, 6vw, 110px) clamp(86px, 11.5vw, 168px);
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(19px, 3.1vw, 52px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-align: center;
+  text-wrap: balance;
+  color: #f3f3f0;
+  pointer-events: none;
+}
+/* Held to a couple of lines rather than one long run across the panel. */
+.zx-glasstextin {
+  display: block;
+  max-width: 24ch;
+}
+
+/* Instrument furniture on the pane ------------------------------------ */
+.zx-glassui {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.zx-gcorner {
+  position: absolute;
+  width: clamp(16px, 2.2vw, 32px);
+  height: clamp(16px, 2.2vw, 32px);
+  border: 1px solid rgb(var(--acc-rgb) / 0.5);
+}
+/* Each keeps only the two edges that form its corner. */
+.zx-gcorner--tl {
+  top: clamp(12px, 1.8vw, 24px);
+  left: clamp(12px, 1.8vw, 24px);
+  border-right: 0;
+  border-bottom: 0;
+}
+.zx-gcorner--tr {
+  top: clamp(12px, 1.8vw, 24px);
+  right: clamp(12px, 1.8vw, 24px);
+  border-left: 0;
+  border-bottom: 0;
+}
+.zx-gcorner--bl {
+  bottom: clamp(12px, 1.8vw, 24px);
+  left: clamp(12px, 1.8vw, 24px);
+  border-right: 0;
+  border-top: 0;
+}
+.zx-gcorner--br {
+  bottom: clamp(12px, 1.8vw, 24px);
+  right: clamp(12px, 1.8vw, 24px);
+  border-left: 0;
+  border-top: 0;
+}
+.zx-glabel {
+  position: absolute;
+  font: 500 9.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(var(--acc-rgb) / 0.62);
+}
+.zx-glabel--tl {
+  top: clamp(16px, 2.1vw, 29px);
+  left: clamp(44px, 5.2vw, 74px);
+}
+.zx-glabel--br {
+  bottom: clamp(16px, 2.1vw, 29px);
+  right: clamp(44px, 5.2vw, 74px);
+}
+/*
+ * The crosshair marks the point every crack radiates from, so it sits exactly
+ * where the fracture originates rather than anywhere convenient.
+ */
+.zx-gcross {
+  --s: clamp(20px, 2.3vw, 32px);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border: 1px solid rgb(var(--acc-rgb) / 0.5);
+  border-radius: 50%;
+}
+.zx-gcross::before,
+.zx-gcross::after {
+  content: "";
+  position: absolute;
+  background: rgb(var(--acc-rgb) / 0.5);
+}
+.zx-gcross::before {
+  left: 50%;
+  top: -9px;
+  bottom: -9px;
+  width: 1px;
+}
+.zx-gcross::after {
+  top: 50%;
+  left: -9px;
+  right: -9px;
+  height: 1px;
+}
+/*
+ * None of it below this width. The panel is about 146px tall on a phone, which
+ * is not enough for corner marks, two labels, a crosshair and two lines of type
+ * — measured, the label lands 16px inside the text. The sentence recentres too,
+ * since the lift only exists to clear a crosshair that is no longer there.
+ */
+@media (max-width: 760px) {
+  .zx-glassui {
+    display: none;
+  }
+  .zx-glasstext {
+    padding-bottom: 0;
+  }
+}
+
+/* Hairlines running out from the crosshair to the panel edges. */
+.zx-grule {
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--acc-rgb) / 0.28) 55%,
+    rgb(var(--acc-rgb) / 0.28)
+  );
+}
+.zx-grule--l {
+  left: clamp(12px, 1.8vw, 24px);
+  right: calc(50% + clamp(22px, 2.4vw, 34px));
+}
+.zx-grule--r {
+  right: clamp(12px, 1.8vw, 24px);
+  left: calc(50% + clamp(22px, 2.4vw, 34px));
+  transform: scaleX(-1);
+}
+/*
+ * The wall. Paper stock rather than another dark panel, so the letters have
+ * something that can visibly break — a fracture drawn on the page background
+ * is a line, a fracture across a light surface is damage. Same stock as the
+ * testimonial cards, so the two light moments on the page belong together.
+ *
+ * It clips, so a letter still on its way in is a shape entering the frame
+ * rather than one floating over the section.
+ */
+/*
+ * Not clipped, and square-cornered because of it. The pieces have to leave, and
+ * a clip here stopped them dead at the panel edge — they vanished about a
+ * centimetre into a flight that is supposed to carry them off the section. The
+ * section itself still clips, which is the boundary that should catch them.
+ * (With no clip a radius would show square pane corners over rounded backing.)
+ */
+.zx-nervewall {
+  position: relative;
+  /*
+   * The layer under the glass, and what is left once it has gone. The accent
+   * the hero gives "brief".
+   *
+   * It has to differ from the panes or nothing reads as broken, and it has to
+   * carry the word once the panes have flown off — black on the accent is
+   * 6.7:1, where black on a dark backing would simply disappear the moment the
+   * glass cleared.
+   */
+  background: #060608;
+  padding: clamp(38px, 5.4vw, 96px) 0 clamp(30px, 4.4vw, 76px);
+  box-shadow: 0 30px 70px -26px rgba(0, 0, 0, 0.8);
+}
+/*
+ * Stretched rather than scaled to fit (`preserveAspectRatio: none`) so the
+ * impact points stay under the letters at any width — the geometry is abstract
+ * enough that the distortion never reads.
+ *
+ * Over the word, not behind it: the letters run nearly the full width, so a
+ * fracture underneath is hidden by the very thing that caused it. Across the
+ * top it reads as the surface splitting, which is the point.
+ */
+.zx-shatter {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* SVG clips to its viewport by default; the pieces need past it. */
+  overflow: visible;
+  /* Over the word, which it conceals until it breaks. */
+  z-index: 1;
+  pointer-events: none;
+}
+/*
+ * Seamless until it breaks. The panes tile on shared vertices, but a bare tiling
+ * is not seamless on screen — two anti-aliased edges meeting on the same line
+ * do not composite to full coverage, so the dark backing bleeds through as a
+ * hairline along every join. The stroke is therefore always painted; at rest it
+ * is the fill colour and covers those joins, and breaking only changes what
+ * colour it is.
+ */
+/*
+ * The stroke lives on the set, not the pane: SVG inherits it, so one tween per
+ * set drives ninety-six edges instead of ninety-six tweens on a scrubbed
+ * timeline.
+ */
+.zx-shardset {
+  stroke: #16161c;
+}
+/*
+ * Dark glass over a darker void, rather than paper. The fracture is carried by
+ * the seams lighting up rather than by the panes contrasting with what is
+ * behind them — which is also what makes the flying pieces visible against the
+ * page, since a black shape on a black background is only its edges.
+ *
+ * Stroke matches the fill at rest for the seam reason above.
+ */
+.zx-shard {
+  fill: #16161c;
+  stroke-width: 1.3;
+  vector-effect: non-scaling-stroke;
+}
+.zx-nerveword {
+  position: relative;
+  z-index: 1;
+  /*
+   * White throughout. The letters are visible flying in against the dark page,
+   * pass into the wall on impact — white on white, which reads as being taken
+   * by it — and come back out as the glass clears off the dark backing.
+   */
+  color: #f3f3f0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: min(25.5vw, 420px);
+  line-height: 0.78;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.zx-nervedefwrap {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(10px, 1.6vw, 22px);
+}
+.zx-nervedef {
+  font: 500 10.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* Services ----------------------------------------------------------- */
+.zx-svcwrap {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+.zx-svc {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.zx-svcfill {
+  position: absolute;
+  inset: 0;
+  background: var(--acc-fill);
+  transform: translate3d(0, 101%, 0);
+  transition: transform 0.7s var(--ease);
+}
+.zx-svcrow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 3vw, 44px);
+  padding: clamp(20px, 2.6vw, 34px) 4px;
+  transition:
+    color 0.45s var(--ease),
+    padding-left 0.7s var(--ease);
+}
+.zx-svcnum {
+  min-width: 44px;
+  font: 400 11px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.18em;
+  opacity: 0.5;
+}
+.zx-svcname {
+  flex: 1;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 500;
+  font-size: clamp(24px, 4.2vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+.zx-svcdesc {
+  display: none;
+  max-width: 34ch;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.72;
+  text-wrap: pretty;
+}
+.zx-svcarrow {
+  font-size: 20px;
+  opacity: 0.5;
+}
+@media (min-width: 1081px) {
+  .zx-svcdesc {
+    display: block;
+  }
+}
+/*
+ * Under 1081px the description used to be hidden outright. That was survivable
+ * when these rows were one-word disciplines, but the copy now carries the offer
+ * itself — price, timeline, what AEO and GEO actually mean — so hiding it left
+ * phone and tablet visitors with three bare titles and no argument. It wraps to
+ * its own line beneath the title instead, ordered last so the number, title and
+ * arrow still share the first row.
+ */
+@media (max-width: 1080px) {
+  .zx-svcrow {
+    flex-wrap: wrap;
+    row-gap: clamp(8px, 1.4vw, 14px);
+  }
+  .zx-svcdesc {
+    display: block;
+    order: 1;
+    flex: 0 0 100%;
+    max-width: 62ch;
+    opacity: 0.66;
+  }
+}
+/* Hover state driven by CSS so it works before JS hydrates. */
+@media (hover: hover) {
+  .zx-svc:hover .zx-svcfill {
+    transform: translate3d(0, 0, 0);
+  }
+  .zx-svc:hover .zx-svcrow {
+    color: var(--onacc);
+    padding-left: 22px;
+  }
+}
+
+/* Stats -------------------------------------------------------------- */
+.zx-stats {
+  max-width: var(--wide);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: clamp(28px, 4vw, 56px);
+}
+.zx-statcell {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+.zx-statnum {
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 400;
+  font-size: clamp(54px, 7vw, 116px);
+  line-height: 0.86;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+  color: var(--acc);
+}
+.zx-statlabel {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(243, 243, 240, 0.6);
+  max-width: 22ch;
+}
+
+/* Selected work ------------------------------------------------------ */
+.zx-work {
+  position: relative;
+  z-index: 2;
+  background: var(--bg2);
+  border-top: 1px solid var(--line);
+  overflow: hidden;
+}
+.zx-workpin {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(80px, 9vw, 120px) 0;
+}
+.zx-work .zx-shead {
+  padding: 0 var(--pad);
+  margin-bottom: clamp(24px, 3vw, 44px);
+}
+.zx-worktrack {
+  display: flex;
+  gap: clamp(16px, 2vw, 32px);
+  padding: 0 var(--pad);
+  width: max-content;
+  will-change: transform;
+}
+.zx-card {
+  position: relative;
+  width: clamp(280px, 58vw, 620px);
+  cursor: pointer;
+}
+.zx-cardframe {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #111214;
+}
+.zx-cardart {
+  position: absolute;
+  inset: 0;
+  transform: scale(1.02);
+  transition:
+    transform 1.1s var(--ease),
+    filter 1.1s var(--ease);
+  will-change: transform;
+}
+.zx-cardveil {
+  position: absolute;
+  inset: 0;
+}
+.zx-cardnum {
+  position: absolute;
+  left: 18px;
+  top: 16px;
+  font: 500 10px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(243, 243, 240, 0.72);
+}
+.zx-cardview {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  padding: 9px 15px;
+  border-radius: 100px;
+  background: var(--acc-fill);
+  color: var(--onacc);
+  font: 500 10px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transform: translateY(120%);
+  opacity: 0;
+  transition:
+    transform 0.6s var(--ease),
+    opacity 0.5s;
+}
+@media (hover: hover) {
+  .zx-card:hover .zx-cardart {
+    transform: scale(1.11) rotate(0.5deg);
+    filter: contrast(1.14) saturate(1.25);
+  }
+  .zx-card:hover .zx-cardview {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.zx-cardfoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-top: 16px;
+}
+.zx-cardtitle {
+  margin: 0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 500;
+  font-size: clamp(20px, 2.2vw, 32px);
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+.zx-carddesc {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: rgba(243, 243, 240, 0.6);
+  max-width: 32ch;
+  text-wrap: pretty;
+}
+.zx-cardmeta {
+  text-align: right;
+  font: 400 10.5px/1.7 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.zx-workbarwrap {
+  padding: clamp(20px, 3vw, 40px) var(--pad) 0;
+}
+.zx-workbartrack {
+  height: 1px;
+  background: var(--line);
+  position: relative;
+  max-width: var(--wide);
+  margin: 0 auto;
+}
+.zx-workbar {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  height: 3px;
+  width: 8%;
+  background: var(--acc);
+}
+
+/* Signal System ------------------------------------------------------ */
+.zx-sig {
+  position: relative;
+  z-index: 2;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.zx-sigpin {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(var(--navh) + clamp(40px, 6vh, 90px)) var(--pad)
+    clamp(40px, 6vh, 90px);
+  overflow: hidden;
+}
+.zx-sigglow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(120vw, 1400px);
+  height: min(120vw, 1400px);
+  transform: translate(-50%, -50%) scale(0.5);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(var(--brand-rgb) / 0.13), transparent 62%);
+  pointer-events: none;
+}
+
+/* The wheel ---------------------------------------------------------- */
+/*
+ * Centre sits off-canvas to the left so only the right arc shows. Sized off
+ * width, since the arc's job is to sweep the left edge of the composition at
+ * any viewport.
+ */
+.zx-wheel {
+  --r: min(35vw, 520px);
+  --out: min(9vw, 132px);
+  position: absolute;
+  left: calc(-1 * var(--out) - var(--r));
+  top: 50%;
+  width: calc(var(--r) * 2);
+  height: calc(var(--r) * 2);
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+.zx-wheelarc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--acc-rgb) / 0.16);
+}
+/* Only this rotates; the numbers inherit the turn, which is the whole effect. */
+.zx-wheelspin {
+  position: absolute;
+  inset: 0;
+  /*
+   * --rot is the scroll-driven turn. --spin-offset is a fixed quarter turn
+   * applied where the arc moves to the top of the section, so the active spoke
+   * points south instead of east.
+   */
+  transform: rotate(calc(var(--rot, 0deg) + var(--spin-offset, 0deg)));
+  will-change: transform;
+}
+/* A zero-height arm from the centre to the rim, fixed at its own angle. */
+.zx-spoke {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 50%;
+  height: 0;
+  transform-origin: 0 0;
+  transform: rotate(var(--a));
+}
+.zx-spokenum {
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translate(42%, -50%);
+  font-family: var(--font-instrument), serif;
+  font-style: italic;
+  font-size: clamp(24px, 2.4vw, 36px);
+  line-height: 1;
+  color: rgba(243, 243, 240, 0.28);
+  transition:
+    color 0.45s var(--ease),
+    opacity 0.45s var(--ease);
+}
+.zx-spokenum[data-on="1"] {
+  color: var(--acc);
+}
+/*
+ * The glyph counter-rotates, never the box. The marker dot below is positioned
+ * in the box's own frame and has to stay on the rim, so the box must keep its
+ * spoke alignment — turning it would swing the dot off along with the digits.
+ * Zero on desktop, where the active spoke already points east and the numerals
+ * are upright of their own accord.
+ */
+.zx-spokedigit {
+  display: inline-block;
+  transform: rotate(var(--num-offset, 0deg));
+}
+/*
+ * The marker rides the active number rather than sitting at a fixed point on
+ * the arc. Anchored to the rim it drifts away from the number, because the
+ * wheel only lands exactly on the mark at whole steps and the rotation is
+ * continuous between them.
+ */
+.zx-spokenum::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: var(--acc);
+  box-shadow: 0 0 14px var(--acc);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.45s var(--ease),
+    transform 0.45s var(--ease);
+}
+.zx-spokenum[data-on="1"]::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Copy --------------------------------------------------------------- */
+.zx-siginner {
+  position: relative;
+  z-index: 2;
+  max-width: var(--wide);
+  margin: 0 auto;
+  width: 100%;
+  /* Clears the arc so the copy never sits on top of the numbers. */
+  padding-left: clamp(0px, calc(min(35vw, 520px) - min(9vw, 132px) + 5vw), 520px);
+}
+.zx-sig .zx-shead {
+  margin-bottom: clamp(24px, 3.5vh, 54px);
+}
+.zx-sigsteps {
+  position: relative;
+  /*
+   * The steps are clipped to this box and travel right through it: one slides
+   * out of the top while the next slides in from underneath. Fading a step in
+   * on the spot is what a nudge-and-crossfade does, and it doesn't read as
+   * movement — the copy has to actually arrive from somewhere.
+   *
+   * The travel is measured against the box, not against a step. A percentage
+   * resolves on the element being transformed, and a step is only as tall as
+   * its own copy — a good bit shorter than the box, which is sized for the
+   * longest of them. Parking one at 108% of itself left it sitting in the
+   * space underneath the active step, in full view. The extra 24px covers the
+   * blur, which bleeds past the edge it is clipped at.
+   */
+  --stepbox: clamp(230px, 32vh, 320px);
+  --slide: calc(var(--stepbox) + 24px);
+  min-height: var(--stepbox);
+  max-width: 46ch;
+  overflow: hidden;
+}
+.zx-sigstep {
+  position: absolute;
+  /* Not `inset: 0`: height has to come from the content so the percentage
+   * travel above clears the whole step, however tall it has wrapped. */
+  top: 0;
+  left: 0;
+  right: 0;
+  /*
+   * Not the page's shared --ease. That curve is an expo-out built for things
+   * that should feel like they have already arrived — it spends 55% of the
+   * travel in the first 110ms, which on a slide this long means you see the
+   * copy settling but never really moving. A cubic out covers the same
+   * distance with the motion still legible.
+   */
+  transition:
+    transform 0.8s cubic-bezier(0.33, 1, 0.68, 1),
+    filter 0.6s var(--ease);
+}
+/* Pre-JS the five would paint on top of each other; only the first belongs. */
+.zx-sigstep:not(:first-child) {
+  transform: translateY(var(--slide));
+}
+.zx-sigtitle {
+  margin: 0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(38px, 6vw, 104px);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+.zx-sigtext {
+  margin: clamp(14px, 1.6vh, 22px) 0 0;
+  max-width: 42ch;
+  font-size: clamp(14px, 1.1vw, 17px);
+  line-height: 1.55;
+  color: rgba(243, 243, 240, 0.66);
+  text-wrap: pretty;
+}
+.zx-sigtags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: clamp(18px, 2.2vh, 28px);
+}
+.zx-sigtag {
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  font: 500 11px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(243, 243, 240, 0.72);
+}
+
+/* The aeroplane ------------------------------------------------------ */
+/*
+ * A WebGL scene, not SVG: the airframe is generated from lathed and extruded
+ * profiles, so there is no model file to load, and `three` is already fetched
+ * for the hero so it costs no extra network. Scroll state reaches it through
+ * the assembly store rather than custom properties, since the scene reads it
+ * every frame.
+ *
+ * The canvas covers the whole pinned section rather than sitting in a box on
+ * the right. Stage five flies the aircraft across the section, and confining it
+ * to a corner meant the departure left the frame a third of the way through.
+ * Where it rests inside that frame is the scene's business, not the layout's.
+ *
+ * z-index 1 keeps it under .zx-siginner's 2, so on the stages where the flight
+ * path passes the copy it passes behind it and the text stays readable.
+ * .zx-sigpin clips it, so it can never spill into the sections either side.
+ */
+.zx-sigform {
+  /*
+   * How the scene frames itself is left to the layout, because only the layout
+   * knows how much room the aircraft has been given. --plane-frame is the world
+   * width the canvas spans, so a smaller number is a closer shot; --plane-rest
+   * is where it parks, as a fraction of the half-width right of centre.
+   */
+  --plane-frame: 26;
+  --plane-rest: 0.6;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.zx-planecanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Narrow: the aircraft moves to the bottom band rather than dropping out. Once
+ * the arc takes the top of the section and the copy sits under it, that band is
+ * empty — and it is where the reference puts its own illustration.
+ *
+ * It has to come a long way in to survive the move. The framing is by width, so
+ * a portrait canvas puts the camera far enough back to render the airframe
+ * around 100px long, and parking it off to one side of a 375px canvas leaves it
+ * half over the copy. Closer, and centred.
+ *
+ * Matched to the wheel's breakpoint, not the 1100 this used to hide at, so the
+ * whole section rearranges in one step instead of two.
+ */
+@media (max-width: 1000px) {
+  .zx-sigform {
+    --plane-frame: 11;
+    --plane-rest: 0;
+    inset: auto 0 0 0;
+    height: 46%;
+  }
+}
+
+/*
+ * Narrow: the arc moves from the left edge to the top, rather than dropping
+ * out. A left-anchored circle cannot survive this far down — to keep the
+ * numbers clear of the copy on a 390px screen its rim has to sit around 45px
+ * in, which puts the radius near 85 and packs five numbers 44px apart. Swung
+ * overhead there is the full width to spread across, which is what the
+ * reference does at this size too.
+ *
+ * The centre goes above the section and the active spoke points south, so the
+ * numbers ride the bottom of the circle. --arc is where that active number
+ * lands, measured from the top of the section; the circle is then placed from
+ * it, and the copy is pushed clear below it.
+ */
+@media (max-width: 1000px) {
+  .zx-sigpin {
+    --arc: clamp(150px, 21vh, 215px);
+    justify-content: flex-start;
+    padding-top: calc(var(--arc) + clamp(54px, 8vh, 100px));
+  }
+  .zx-wheel {
+    --r: min(88vw, 420px);
+    --spin-offset: 90deg;
+    --num-offset: -90deg;
+    left: 50%;
+    /* Element top = centre − r, and centre = arc − r. */
+    top: calc(var(--arc) - 2 * var(--r));
+    transform: translateX(-50%);
+  }
+  .zx-siginner {
+    padding-left: 0;
+    text-align: center;
+  }
+  .zx-sigsteps {
+    max-width: 40ch;
+    margin: 0 auto;
+  }
+  .zx-sigtags {
+    justify-content: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zx-sigsteps {
+    min-height: auto;
+    /* The steps become a static list here, so nothing should be clipped. */
+    overflow: visible;
+  }
+  .zx-sigstep {
+    position: relative;
+    inset: auto;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    margin-bottom: 48px;
+  }
+}
+/* Receipts ----------------------------------------------------------- */
+/*
+ * A deck rather than a grid: the quotes stack as tilted cards over an oversized
+ * wordmark, and scrolling throws the top one up and off to reveal the next.
+ * The cards behind promote as it goes, growing and stepping up, so the pile
+ * always has depth to it.
+ */
+.zx-testi {
+  position: relative;
+  z-index: 2;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.zx-testipin {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--navh) + clamp(30px, 5vh, 70px)) var(--pad)
+    clamp(30px, 5vh, 70px);
+  overflow: hidden;
+}
+/*
+ * The wordmark is the section title, so it is sized purely in vw with no clamp
+ * and no breakpoint. Font size and rendered width scale together, so a single
+ * vw figure holds the word at the same ~87% of the viewport at every size —
+ * measured 1253px of 1440 and 337px of 390. Overriding it larger on small
+ * screens, which looks like the obvious thing to do, is what pushes it past
+ * the edge and gets it clipped.
+ */
+.zx-testimark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: 13.4vw;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  /*
+   * Full-strength ink held back by opacity rather than a faint colour, because
+   * once the deck has cleared this stops being a backdrop: it lights up, scales
+   * through the viewport and leaves. It cannot do that from 5% white.
+   */
+  color: var(--ink);
+  opacity: 0.055;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+}
+/*
+ * The line that introduces the takeover. It sits above the wordmark and is a
+ * sibling, never a child — the wordmark scales to 9x, and anything inside it
+ * would go with it.
+ *
+ * The offset is derived from the wordmark rather than guessed: font-size is
+ * 13.4vw at line-height 0.9, so the line box is 12.06vw and half of it 6.03vw.
+ * Both are in vw, so the pair keep their spacing at every width.
+ *
+ * Starts invisible. It belongs to the second act, and during the first the
+ * deck is sitting exactly where it would be.
+ */
+.zx-testisub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  /*
+   * --sub-push keeps it clear of the wordmark as that grows. The word scales
+   * about its own centre, so its top edge climbs by half its height for every
+   * step of scale; without this the line is inside a letter by scale 1.3.
+   */
+  transform: translate(
+    -50%,
+    calc(
+      -50% - 6.03vw - clamp(14px, 1.6vw, 26px) - var(--sub-push, 0px) +
+        var(--sub-rise, 16px) + var(--sub-lift, 0px)
+    )
+  );
+  opacity: 0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 500;
+  font-size: clamp(11px, 1vw, 15px);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--acc);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+@media (max-width: 760px) {
+  .zx-testisub {
+    top: 31%;
+  }
+}
+
+.zx-testideck {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+/*
+ * Every card in the same grid cell, which stacks them without taking
+ * `transform` away for positioning — the animation needs all of it.
+ */
+/*
+ * Paper, not another dark panel. Everything else on this page is a lifted black
+ * surface behind a hairline, and a deck built that way barely separates from the
+ * background it is tumbling over — the cards have to read as objects for the
+ * throw to land. Light stock on near-black does that on its own, so there is no
+ * border and no glow, only a shadow deep enough to stack them.
+ *
+ * The two tones alternate down the pile the way the reference's white and #eee
+ * do, which is what stops a stack of identical rectangles reading as one thick
+ * card seen edge-on.
+ */
+.zx-testicard {
+  --card-ink: #14141a;
+  --card-dim: #56564f;
+
+  grid-area: 1 / 1;
+  margin: 0;
+  width: min(88vw, 500px);
+  padding: clamp(26px, 3vw, 40px);
+  border-radius: 6px;
+  background: #f3f3f0;
+  color: var(--card-ink);
+  box-shadow:
+    0 30px 64px -20px rgba(0, 0, 0, 0.85),
+    0 3px 12px rgba(0, 0, 0, 0.55);
+  /* Set per card; the deck's resting tilt. */
+  transform: rotate(var(--rest, 0deg));
+  will-change: transform;
+}
+.zx-testicard:nth-child(even) {
+  background: #e4e3dd;
+}
+/*
+ * --acc-fill rather than the flat --acc the rest of the page uses for accents:
+ * the periwinkle is tuned to carry on a black background and drops to roughly
+ * 2:1 on paper. This one holds about 4.8:1, which a 38px glyph is fine on.
+ */
+.zx-testimark-q {
+  font-family: var(--font-instrument), serif;
+  font-style: italic;
+  font-size: 38px;
+  line-height: 0.7;
+  color: var(--acc-fill);
+}
+.zx-testitext {
+  margin: 14px 0 0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 400;
+  font-size: clamp(18px, 1.6vw, 25px);
+  line-height: 1.34;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+.zx-testicap {
+  margin-top: clamp(20px, 2.4vw, 30px);
+  padding-top: clamp(14px, 1.6vw, 20px);
+  border-top: 1px solid rgba(20, 20, 26, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font: 400 11px/1.5 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.zx-testiname {
+  color: var(--card-ink);
+}
+/* Not --dim, which is a light-on-dark grey and washes out on paper. */
+.zx-testirole {
+  color: var(--card-dim);
+}
+
+/*
+ * Narrow: the wordmark lifts clear of the deck instead of sitting behind it.
+ * Both are sized off the viewport — the word runs to ~90% of it and the card
+ * to 88% — so centred on the same point the card hides the word completely.
+ * Above the deck it still reads as the section's title.
+ */
+@media (max-width: 760px) {
+  .zx-testimark {
+    top: 31%;
+  }
+}
+
+/*
+ * Without the scroll driver there is nothing to deal the deck, so it falls
+ * back to a plain stack of cards in flow.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .zx-testipin {
+    min-height: 0;
+  }
+  .zx-testideck {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(18px, 2.4vw, 30px);
+    align-items: center;
+  }
+  .zx-testicard {
+    transform: none !important;
+  }
+  .zx-testimark,
+  .zx-testisub {
+    display: none;
+  }
+}
+
+/* FAQ ---------------------------------------------------------------- */
+.zx-faqgrid {
+  max-width: var(--wide);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(28px, 4vw, 60px);
+}
+.zx-faqgrid .zx-shead {
+  margin-bottom: 0;
+}
+.zx-acc {
+  border-top: 1px solid var(--line);
+}
+.zx-accitem {
+  border-bottom: 1px solid var(--line);
+}
+.zx-acchead {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: clamp(20px, 2.2vw, 30px) 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  transition: color 0.4s;
+}
+.zx-acchead:hover {
+  color: var(--acc);
+}
+.zx-accq {
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 500;
+  font-size: clamp(17px, 2vw, 28px);
+  letter-spacing: -0.025em;
+}
+.zx-accicon {
+  flex: none;
+  font-size: 22px;
+  line-height: 1;
+  transition: transform 0.6s var(--ease);
+  color: var(--acc);
+}
+.zx-acchead[aria-expanded="true"] .zx-accicon {
+  transform: rotate(135deg);
+}
+.zx-accbody {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.7s var(--ease),
+    opacity 0.5s;
+}
+.zx-accbody p {
+  margin: 0 0 clamp(20px, 2.2vw, 30px);
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(243, 243, 240, 0.66);
+  text-wrap: pretty;
+}
+
+/* Scope form --------------------------------------------------------- */
+.zx-form {
+  border-top: 1px solid var(--line);
+}
+.zx-forminner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.zx-form .zx-shead {
+  margin-bottom: clamp(24px, 3vw, 44px);
+}
+.zx-fprogwrap {
+  height: 2px;
+  background: rgba(243, 243, 240, 0.1);
+  margin-bottom: clamp(34px, 4.4vw, 64px);
+}
+.zx-fprog {
+  height: 100%;
+  background: var(--acc);
+  transition: width 0.9s var(--ease);
+}
+.zx-fwrap {
+  position: relative;
+  min-height: 340px;
+}
+.zx-fstep {
+  transition:
+    opacity 0.5s var(--ease),
+    transform 0.6s var(--ease);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.zx-fstep[data-active="1"] {
+  position: relative;
+  inset: auto;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.zx-fh2 {
+  margin: 0 0 clamp(22px, 3vw, 40px);
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 500;
+  font-size: clamp(28px, 4.6vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+.zx-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.zx-chip {
+  padding: 14px 22px;
+  border-radius: 100px;
+  border: 1px solid var(--line);
+  background: transparent;
+  font: 500 12px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.45s var(--ease);
+}
+.zx-chip:hover {
+  border-color: rgb(var(--acc-rgb) / 0.5);
+}
+.zx-chip[aria-pressed="true"] {
+  background: var(--acc-fill);
+  border-color: var(--acc-fill);
+  color: var(--onacc);
+}
+.zx-sliderhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+.zx-slidercap {
+  font: 500 10.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.zx-sliderval {
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 400;
+  font-size: clamp(28px, 4vw, 54px);
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--acc);
+}
+.zx-slider {
+  position: relative;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.zx-slider[data-drag="1"] {
+  cursor: grabbing;
+}
+.zx-slidertrack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(243, 243, 240, 0.14);
+}
+.zx-sliderfill {
+  position: absolute;
+  left: 0;
+  height: 2px;
+  background: var(--acc);
+}
+.zx-sliderknob {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  border-radius: 50%;
+  background: var(--acc);
+  box-shadow: 0 0 0 6px rgb(var(--acc-rgb) / 0.14);
+  transition:
+    box-shadow 0.3s,
+    transform 0.3s;
+}
+.zx-slider[data-drag="1"] .zx-sliderknob {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 12px rgb(var(--acc-rgb) / 0.16);
+}
+.zx-sliderends {
+  display: flex;
+  justify-content: space-between;
+  font: 400 10.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.16em;
+  color: rgba(243, 243, 240, 0.4);
+  margin-top: 4px;
+}
+.zx-fieldgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+}
+.zx-label {
+  display: block;
+}
+.zx-label--wide {
+  grid-column: 1 / -1;
+}
+.zx-labeltext {
+  display: block;
+  font: 500 10px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 10px;
+}
+.zx-field {
+  width: 100%;
+  padding: 14px 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  outline: none;
+  font-size: 16px;
+  transition: border-color 0.4s;
+}
+.zx-field:focus {
+  border-color: var(--acc);
+}
+.zx-fdone {
+  text-align: center;
+  padding: clamp(30px, 5vw, 70px) 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.7s,
+    transform 0.9s var(--ease);
+}
+.zx-fdone[data-open="1"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+.zx-fdonebig {
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(38px, 6vw, 96px);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+.zx-fdonetext {
+  margin: 18px auto 0;
+  max-width: 44ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(243, 243, 240, 0.66);
+}
+.zx-fnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: clamp(30px, 4vw, 54px);
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+/* Footer ------------------------------------------------------------- */
+.zx-foot {
+  position: relative;
+  z-index: 2;
+  background: var(--bg2);
+  border-top: 1px solid var(--line);
+  padding: clamp(60px, 8vw, 110px) var(--pad) 24px;
+  overflow: hidden;
+}
+.zx-foottop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(28px, 4vw, 80px);
+  justify-content: space-between;
+  margin-bottom: clamp(50px, 7vw, 100px);
+}
+/*
+ * A ch-based max-width resolves against this element's inherited 16px font, not
+ * the 56px display line inside it — 30ch came out ~240px and broke the closing
+ * line across four lines. Sized directly instead.
+ */
+.zx-footlead {
+  max-width: min(54vw, 620px);
+}
+/*
+ * The close is a statement plus an ask, not a sign-off. Set at display scale so
+ * it counterweights the hero rather than reading as small print, with the
+ * emphasis carried by the instruction.
+ */
+.zx-footline {
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 500;
+  font-size: clamp(30px, 3.6vw, 56px);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.zx-footline em {
+  /* Instrument Serif runs small against the sans at a matched size. */
+  font-size: 1.12em;
+  line-height: 1;
+  color: var(--acc);
+}
+.zx-footcta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(16px, 2vw, 28px);
+  margin-top: clamp(24px, 2.6vw, 38px);
+}
+.zx-footmail {
+  display: inline-block;
+  font: 500 clamp(14px, 1.25vw, 17px) / 1 var(--font-grotesk), sans-serif;
+  letter-spacing: -0.01em;
+  color: var(--acc);
+  border-bottom: 1px solid rgb(var(--acc-rgb) / 0.35);
+  padding-bottom: 6px;
+}
+.zx-footmail:hover {
+  border-bottom-color: var(--acc);
+}
+
+/*
+ * Sits behind the wordmark and bleeds past the edges, so the page closes on the
+ * same brand energy the hero opens with instead of fading to flat black.
+ */
+.zx-footglow {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(40px, 9vw, 150px);
+  width: min(150vw, 1600px);
+  aspect-ratio: 2 / 1;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgb(var(--brand-rgb) / 0.2),
+    transparent 62%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.zx-footcols {
+  display: flex;
+  gap: clamp(28px, 5vw, 90px);
+  flex-wrap: wrap;
+  font: 400 12.5px/2.1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.1em;
+}
+.zx-footcoltitle {
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 14px;
+}
+.zx-footlink,
+.zx-footfact {
+  display: block;
+  color: rgba(243, 243, 240, 0.75);
+}
+.zx-footlink:hover {
+  color: var(--acc);
+}
+.zx-footclock {
+  color: var(--acc);
+  font-variant-numeric: tabular-nums;
+}
+/*
+ * Its own gradient rather than the site's hero utility: at this size the hero
+ * ramp lands on its cyan end and the wordmark reads teal, off-key against the
+ * violet everywhere else. This uses the button ring instead, drifting slowly so
+ * the page's last element is alive rather than a flat slab.
+ */
+/* The control room ---------------------------------------------------- */
+/*
+ * An instrument panel, in the same language as the section registration marks
+ * and the labels on the glass: mono micro-caps for the field, a rule, and the
+ * reading set large enough to be the thing you look at.
+ *
+ * Every value is measured on the reader's machine — see ControlRoom. That is
+ * the point of putting it here: a design-engineering studio closing the page by
+ * showing its working rather than asserting it.
+ */
+.zx-cr {
+  margin-top: clamp(48px, 6vw, 96px);
+  padding-top: clamp(24px, 3vw, 40px);
+  border-top: 1px solid var(--line);
+}
+.zx-crhead {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.6vw, 22px);
+  margin-bottom: clamp(20px, 2.6vw, 34px);
+}
+.zx-crtitle {
+  font: 500 10.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--acc);
+  white-space: nowrap;
+}
+.zx-crrule {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.zx-crnote {
+  font: 400 10.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.zx-crgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: clamp(18px, 2.2vw, 32px) 0;
+  margin: 0;
+}
+/* A rule per cell rather than a box per cell — the panel reads as one
+   instrument that way instead of eight separate chips. */
+.zx-crcell {
+  padding: 0 clamp(14px, 1.6vw, 24px);
+  border-left: 1px solid var(--line);
+}
+.zx-crcell--wide {
+  grid-column: span 2;
+}
+.zx-crk {
+  margin: 0 0 8px;
+  font: 400 9.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.zx-crv {
+  margin: 0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 500;
+  font-size: clamp(15px, 1.4vw, 21px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  /*
+   * Tabular figures because these readings change every half second — with
+   * proportional digits the whole panel twitches sideways on every update.
+   */
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+.zx-crv--acc {
+  color: var(--acc);
+}
+@media (max-width: 620px) {
+  .zx-crcell--wide {
+    grid-column: span 1;
+  }
+}
+
+
+.zx-footmark {
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: min(23.5vw, 460px);
+  line-height: 0.76;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  background: var(--ring);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: zx-markshift 11s ease-in-out infinite alternate;
+}
+@keyframes zx-markshift {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+/* No gradient support: fall back to the solid ink the design shipped with. */
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .zx-footmark {
+    color: var(--ink);
+  }
+}
+.zx-footbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 26px;
+  margin-top: clamp(14px, 2vw, 26px);
+  border-top: 1px solid var(--line);
+  font: 400 10.5px/1 var(--font-grotesk), sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+/*
+ * Sits in the flow between the link columns and the wordmark rather than
+ * absolutely in the corner, where the source design had it covering the studio
+ * address. Auto left margin keeps it right-aligned; the negative margins pull
+ * it into the whitespace so it still reads as slapped on. Drag transforms are
+ * unaffected either way.
+ */
+.zx-sticker {
+  position: relative;
+  margin: clamp(4px, 1vw, 12px) 0 clamp(-28px, -2vw, -12px) auto;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #f3f3f0;
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  will-change: transform;
+  z-index: 5;
+  border: 0;
+}
+.zx-sticker[data-drag="1"] {
+  cursor: grabbing;
+}
+/* Light disc so the mark's darker blues stay legible; on the accent purple
+ * the lower half of its gradient sank into the fill. */
+.zx-sticker img {
+  width: 62px;
+  height: auto;
+  pointer-events: none;
+}

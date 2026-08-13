@@ -1,0 +1,17 @@
+# robots.txt for Zext Digital LLP
+
+User-agent: *
+Allow: /
+
+# Disallow transactional / token-gated utility pages
+Disallow: /zext-academy/thank-you
+Disallow: /newsletter/unsubscribe
+
+# Disallow admin or private areas (if any)
+# Disallow: /api/
+
+# Sitemap location
+Sitemap: https://www.zextdigital.ai/sitemap.xml
+
+# Crawl-delay (optional, uncomment if needed)
+# Crawl-delay: 10

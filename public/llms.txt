@@ -1,0 +1,121 @@
+# Zext Digital LLP
+
+> AI transformation company based in Mumbai, India.
+> Helps organizations use AI, automation, analytics and strategic
+> advisory to improve revenue, cost, operations and decision-making.
+> Serving clients across India, the UAE, and globally.
+
+Tagline: Build practical AI transformation inside your business.
+
+## About
+
+Zext Digital is an AI transformation company that bridges the gap 
+between AI ambition and AI execution. Founded in June 2025, 
+headquartered in Mumbai. Our positioning is AI-enabled enhancement 
+— not replacement. We work with existing systems, data, and people, 
+layering intelligence on top. Working solutions deployed inside your 
+environment in 2–3 months.
+
+## Core Services
+
+### AI Visibility & Revenue Systems
+We help businesses improve visibility across Google, ChatGPT, Gemini,
+Perplexity, LinkedIn and social platforms, then convert that
+visibility into customer acquisition, qualified leads and measurable
+revenue pipelines. Covers GEO, AEO, social-media customer
+acquisition, founder authority, lead systems and AI-ready websites.
+AI-assisted content production at scale across LinkedIn, Instagram,
+YouTube, Meta Ads and WhatsApp Business (e.g. ~1 reel/day, ~75%
+faster video production).
+
+### AI-Ready Websites & Digital Assets
+We build AI-ready websites, landing pages and digital assets with
+clear information architecture, conversion journeys, analytics, SEO
+and GEO readiness built in — full website typically in 2–3 weeks.
+UX, IA & component systems; build, integrate & launch; performance &
+accessibility; analytics, SEO & iteration.
+
+### Enterprise AI Automation
+We design and deploy AI agents, workflow automations and custom AI
+systems across business functions, reducing manual work and improving
+execution speed. AI agents, workflow automation, process automation,
+custom AI systems and business-function use cases across HR & Talent,
+Compliance & Governance, Operations, Finance and Sales & CX.
+Four-phase approach — Discovery, Strategy, Pilot (fixed-fee, 2–3
+months, with defined success metrics), Scale.
+
+### AI Performance, Governance & Reliability
+We help organizations monitor, govern and optimize AI systems across
+cost, token usage, model selection, prompt design, accuracy,
+compliance and executive reporting. Cost optimization, token
+reduction, model optimization, observability, governance and
+reliability.
+
+### Business Intelligence & Decision Systems
+We build MIS frameworks, dashboards, reporting systems and
+intelligence layers that give leadership visibility into finance,
+operations, sales and performance. MIS, dashboards, executive
+intelligence, reporting, analytics and decision systems.
+
+### AI-Augmented Strategy & Analytics
+We combine strategic advisory, analytics, feasibility studies, DPRs,
+business planning, financial modelling and investment readiness to
+help organizations evaluate opportunities and scale with confidence.
+DPRs, feasibility studies, financial models, analytics, business
+planning and investment readiness.
+
+### AI Capability Building & Academy
+We help founders, CXOs, teams, institutions and professionals build
+practical AI capability through executive workshops, corporate
+enablement, cohort learning and FDE programs. Executive workshops,
+corporate enablement, cohort learning and FDE programs.
+
+## Products
+
+### HR Pre-Screening Agent
+Screens hundreds of candidates in hours. ~95% faster initial 
+screening, 80% less recruiter effort, ~90% faster to recruiter 
+review. Automated personalised outreach, objective evaluation, 
+ATS/HRIS integration. DPDP and PDPL compliant.
+
+### Content Audit Agent
+Audited 5,000+ pages in under 2 days, identified 150,000+ issues, 
+enforced 40+ custom rules. Continuous monitoring for compliance, 
+brand consistency, and regulatory requirements including India 
+IT Rules 2026.
+
+## Platform
+Single AI platform installed inside client infrastructure (AWS, 
+Azure, or on-premise). Data never leaves client systems. GDPR, 
+DPDP Act, PDPL, DIFC Regulation 10 compliant. Build once, reuse 
+across all agents. First deployment: 2–3 months. Subsequent agents: 
+faster and cheaper on the same foundation.
+
+## Clients & Partners
+Bathiya Advisors (Professional Services), AAD Technologies 
+(Technology), Neelam Realtors (Real Estate), Palladian Partners 
+(Real Estate Mandate Agency), Greencell Mobility (EV Fleet Logistics 
+& Ops), PSIPL (Facility Management), Britti Group of Schools 
+(Education), ITI Group (Institutional Broking), 
+Neebal Technologies (Technology).
+
+## Industries Served
+Healthcare, Education (K-12), Real Estate, Banks & Private Banking, 
+Advisory Firms, Capital Markets, Retail, Field Services / IFM, 
+Electric Mobility, Consumer Services, Professional Services.
+
+## Leadership Behind Zext
+- Ashish Tibdewal: Co-Founder & Chief Strategist, 25+ years in 
+  finance and operations leadership.
+- Kushal Sanghavi: Co-Founder & CTO, 15+ years building AI 
+  platforms, data systems, and enterprise automation.
+- Nidhi Pandya: Co-Founder & Brand Lead, 10+ years across 
+  marketing, HR operations, and executive leadership.
+
+## Contact
+- Email: contact@zextdigital.ai
+- Phone: +91 70212 15403
+- Website: www.zextdigital.ai
+- LinkedIn: linkedin.com/company/zext-digital
+- Instagram: @zextdigital
+- Location: Mumbai, India — Serving India, UAE & Global Clients
