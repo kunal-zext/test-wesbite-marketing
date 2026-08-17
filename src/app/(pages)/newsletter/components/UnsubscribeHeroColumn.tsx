@@ -161,7 +161,7 @@ export default function UnsubscribeHeroColumn() {
           className="max-w-[40ch] text-pretty text-base leading-relaxed text-white/50 sm:text-lg"
         >
           Inboxes fill up, priorities shift, and sometimes mail just isn&apos;t a
-          fit anymore. If you go, we&apos;ll stop writing to this address—no hard
+          fit anymore. If you go, we&apos;ll stop writing to this address. No hard
           feelings, and you can always come back when the timing is right.
         </motion.p>
 
@@ -171,7 +171,7 @@ export default function UnsubscribeHeroColumn() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.85, duration: 0.5, ease: EASE }}
         >
-          Take care — we mean it
+          Take care, we mean it
         </motion.p>
       </div>
     </motion.article>

@@ -17,7 +17,7 @@ declare global {
 }
 
 const CALENDLY_URL =
-  "https://calendly.com/zextdigital/30min?hide_gdpr_banner=1&background_color=1a2348&text_color=ffffff&primary_color=8c52ff";
+  "https://calendly.com/zextdigital/30min?hide_gdpr_banner=1&background_color=291a48&text_color=ffffff&primary_color=8c52ff";
 
 const CTASection = () => {
   const calendlyHostRef = useRef<HTMLDivElement>(null);

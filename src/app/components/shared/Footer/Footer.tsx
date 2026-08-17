@@ -414,7 +414,7 @@ const Footer = () => {
                   style={{
                     fontSize: "clamp(2.75rem, calc(100vw / 6.35), 140rem)",
                     letterSpacing: "0",
-                    color: "#1a2348",
+                    color: "#291a48",
                     WebkitTextStroke: "min(0.05em, 0.3vh)#4b5a8f",
                     paintOrder: "stroke fill",
                   }}

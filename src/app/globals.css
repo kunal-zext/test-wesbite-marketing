@@ -34,8 +34,8 @@ button {
 @theme {
   --color-primary: #8c52ff;
   --color-secondary: #8fe0ff;
-  --color-tertiary: #11173a;
-  --color-background: #1a2348;
+  --color-tertiary: #1a2348;
+  --color-background: #291a48;
 
   /* Accent palette - card "life" colors */
   --color-accent-green: #72f2b8;

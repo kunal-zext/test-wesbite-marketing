@@ -10,24 +10,20 @@
  */
 
 import {
-  CASES,
-  CLIENTS,
   CONTACT,
   FOOTER_BAR,
   FOOTER_LINKS,
   HERO,
-  QUOTES,
   SERVICES,
   STAGES,
   STATS,
   TICKER,
 } from "../data";
-import ControlRoom from "./ControlRoom";
 import FluidCanvas from "./FluidCanvas";
 import Plane from "./Plane";
 import Faq from "./Faq";
 import ScopeForm from "./ScopeForm";
-import Sticker from "./Sticker";
+import Gauge from "./Gauge";
 
 function SectionHead({
   num,
@@ -35,14 +31,15 @@ function SectionHead({
   aside,
   asideProps,
 }: {
-  num: string;
+  /** Omitted on sections that sit outside the numbered run. */
+  num?: string;
   title: string;
   aside?: string;
   asideProps?: Record<string, string>;
 }) {
   return (
     <div className="zx-shead">
-      <span className="zx-snum">{num}</span>
+      {num !== undefined && <span className="zx-snum">{num}</span>}
       <span>{title}</span>
       <span className="zx-sline" />
       {aside !== undefined && <span {...asideProps}>{aside}</span>}
@@ -125,11 +122,11 @@ export function Hero() {
             </a>
             <a
               className="zx-btn zx-btn--ghost"
-              href="#work"
+              href="#process"
               data-mag="2"
               data-label="view"
             >
-              <span>See the work</span>
+              <span>See the process</span>
               <span className="zx-btnarrow" aria-hidden="true">
                 →
               </span>
@@ -165,29 +162,6 @@ export function Hero() {
   );
 }
 
-export function Clients() {
-  return (
-    <section className="zx-logos">
-      <div className="zx-logoslabel">Built for teams who actually ship</div>
-      <div className="zx-marq" data-h="skew">
-        <div className="zx-marqtrack">
-          {[0, 1].map((copy) => (
-            <div
-              className="zx-marqgroup"
-              key={copy}
-              aria-hidden={copy === 1 || undefined}
-            >
-              {CLIENTS.map((c) => (
-                <span key={c}>{c}</span>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export function Manifesto() {
   return (
     <section className="zx-sec zx-manisec" id="studio" data-r="wipe">
@@ -198,13 +172,13 @@ export function Manifesto() {
           <em className="zx-serif hero-title-gradient-animated">
             eleven seconds
           </em>{" "}
-          after someone lands — when they stop, lean in, and decide
+          after someone lands, when they stop, lean in, and decide
           you&rsquo;re serious.
         </p>
         <p className="zx-manitail" data-r="up">
           Everything else is logistics. Most sites are designed by committee,
           approved by consensus, and forgotten by lunch. Ours get built by five
-          people in one room with one opinion — and they get shipped with something
+          people in one room with one opinion, and they get shipped with something
           no competitor has the
         </p>
       </div>
@@ -380,10 +354,10 @@ export function Nerve() {
           <span className="zx-gcorner zx-gcorner--bl" data-h="glassbit" />
           <span className="zx-gcorner zx-gcorner--br" data-h="glassbit" />
           <span className="zx-glabel zx-glabel--tl" data-h="glassbit">
-            Pane 01 — tempered
+            Pane 01 / tempered
           </span>
           <span className="zx-glabel zx-glabel--br" data-h="glassbit">
-            Impact — centre
+            Impact / centre
           </span>
           <span className="zx-gcross" data-h="glassbit" />
           <span className="zx-grule zx-grule--l" data-h="glassbit" />
@@ -403,7 +377,7 @@ export function Nerve() {
             than the page's generic reveal, so it arrives with the word it
             defines instead of ahead of it. */}
         <div className="zx-nervedef" data-h="nervedef">
-          noun — the thing your last agency didn&rsquo;t have
+          noun: the thing your last agency didn&rsquo;t have
         </div>
       </div>
     </section>
@@ -443,100 +417,68 @@ export function Services() {
   );
 }
 
+/**
+ * The metrics tape.
+ *
+ * No panel, no photographs, no illustration: the numbers are the section, set
+ * at the same display scale as the page's other signature moments and run as a
+ * single horizontal tape. Scroll slides the tape so each value takes the centre
+ * of the viewport in turn; the centred value fills in solid accent while its
+ * neighbours stand as hollow outlines either side, so the reader always sees
+ * where they are in the run without a single piece of chrome.
+ *
+ * The values are aria-hidden as a group — they are a visual instrument — and
+ * each copy slot carries the figure in a visually-hidden span instead, so a
+ * screen reader hears "41 — Flagship builds" exactly once.
+ */
 export function Stats() {
   return (
-    <section className="zx-sec">
-      <div className="zx-stats">
-        {STATS.map((s) => (
-          <div className="zx-statcell" key={s.label} data-r="up">
-            <div
-              className="zx-statnum"
-              data-h="stat"
-              data-to={s.to}
-              data-dec={s.dec}
-              data-suffix={s.suffix}
-            >
-              {s.to.toFixed(s.dec)}
-              {s.suffix}
-            </div>
-            <div className="zx-statlabel">{s.label}</div>
+    <section className="zx-metrics" data-h="metrics">
+      <div className="zx-metricsinner">
+        <SectionHead title="By the numbers" aside="Measured, not claimed." />
+
+        <div className="zx-mreel" data-h="mreel">
+          {/*
+           * The instrument, in three dimensions this time: a gyroscope — the
+           * thing an aircraft actually measures with, and the bridge to the
+           * aeroplane two sections down. It wears the airframe's exact
+           * materials, its outer gimbal turns a quarter-revolution per metric
+           * with the scroll, and the inner rings precess on their own time so
+           * it stays alive between readings.
+           */}
+          <div className="zx-mxgaugebox" aria-hidden>
+            <Gauge />
           </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
-export function Work() {
-  return (
-    <section className="zx-work" id="work" data-h="hgal">
-      <div className="zx-workpin" data-h="hgalpin">
-        <SectionHead
-          num="03"
-          title="Selected work"
-          aside={`01 / 0${CASES.length}`}
-          asideProps={{ "data-h": "hgalcount" }}
-        />
+          <div className="zx-mxtape" data-h="mxtape" aria-hidden>
+            {STATS.map((s) => (
+              <span className="zx-mxval" data-h="mxval" key={s.title}>
+                {s.value}
+                {/*
+                 * The ink. A solid copy of the same glyphs over the outline,
+                 * revealed bottom-up by a clip that tracks scroll — the number
+                 * pours full as it arrives instead of switching on.
+                 */}
+                <span className="zx-mxvalfill" data-h="mxfill">
+                  {s.value}
+                </span>
+              </span>
+            ))}
+          </div>
 
-        <div className="zx-worktrack" data-h="hgaltrack">
-          {CASES.map((c) => (
-            <article
-              className="zx-card"
-              key={c.title}
-              data-h="card"
-              data-mag="1"
-              data-label="view"
-            >
-              <div className="zx-cardframe">
-                <div
-                  className="zx-cardart"
-                  data-h="cardart"
-                  style={{ background: c.art }}
-                />
-                {c.veils.map((v, i) => (
-                  <div
-                    className="zx-cardveil"
-                    key={i}
-                    aria-hidden="true"
-                    style={{
-                      background: v,
-                      ...("veilSize" in c && c.veilSize
-                        ? { backgroundSize: c.veilSize }
-                        : null),
-                      ...("veilBlend" in c && c.veilBlend
-                        ? { mixBlendMode: "overlay" as const }
-                        : null),
-                    }}
-                  />
-                ))}
-                <div className="zx-cardnum">{c.num}</div>
-                <div className="zx-cardview" data-h="cardview">
-                  Case study
+          <div className="zx-mxinfo">
+            {STATS.map((s) => (
+              <div className="zx-mslot" data-h="mslot" key={s.title}>
+                <div className="zx-mtitle">
+                  <span className="zx-msr">{s.value}: </span>
+                  {s.title}
                 </div>
+                <p className="zx-mdesc">{s.desc}</p>
               </div>
-              <div className="zx-cardfoot">
-                <div>
-                  <h3 className="zx-cardtitle">{c.title}</h3>
-                  <p className="zx-carddesc">{c.desc}</p>
-                </div>
-                <div className="zx-cardmeta">
-                  {c.meta.map((m, i) => (
-                    <span key={m}>
-                      {m}
-                      {i < c.meta.length - 1 && <br />}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="zx-workbarwrap">
-          <div className="zx-workbartrack">
-            <div className="zx-workbar" data-h="hgalbar" />
+            ))}
           </div>
         </div>
+
       </div>
     </section>
   );
@@ -581,7 +523,7 @@ export function Signal() {
 
         <div className="zx-siginner">
           <SectionHead
-            num="04"
+            num="03"
             title="How it works"
             aside="Five steps. Weeks, not months."
           />
@@ -616,51 +558,11 @@ export function Signal() {
   );
 }
 
-export function Receipts() {
-  return (
-    <section className="zx-testi" data-h="testi">
-      <div className="zx-testipin" data-h="testipin">
-        <div className="zx-inner">
-          <SectionHead num="05" title="Receipts" />
-        </div>
-        <div className="zx-testimark" aria-hidden="true">
-          Testimonials
-        </div>
-        {/* Runs straight into the wordmark below it — the line and TESTIMONIALS
-            are one sentence, which is why it sits this close and leaves before
-            the word swallows the screen. */}
-        <p className="zx-testisub">You could be in our next</p>
-        <div className="zx-testideck">
-          {QUOTES.map((q, i) => (
-            <figure
-              className="zx-testicard"
-              key={q.name}
-              data-h="testicard"
-              /* Alternating tilts, so the stack reads as a pile of cards
-                 rather than one card with a drop shadow. */
-              style={{ "--rest": `${i % 2 ? 2.6 : -3.4}deg` } as React.CSSProperties}
-            >
-              <div className="zx-testimark-q" aria-hidden="true">
-                &ldquo;
-              </div>
-              <blockquote className="zx-testitext">{q.text}</blockquote>
-              <figcaption className="zx-testicap">
-                <span className="zx-testiname">{q.name}</span>
-                <span className="zx-testirole">{q.role}</span>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export function FaqSection() {
   return (
     <section className="zx-sec" id="faq">
       <div className="zx-faqgrid">
-        <SectionHead num="06" title="Straight answers" />
+        <SectionHead num="04" title="Straight answers" />
         <Faq />
       </div>
     </section>
@@ -680,92 +582,82 @@ export function Contact() {
 export function Footer() {
   return (
     <footer className="zx-foot" data-h="foot">
-      {/* Bloom behind the wordmark, so the page closes on the same energy the
-          hero opens with rather than fading out to flat black. */}
-      <div className="zx-footglow" aria-hidden="true" />
-      <div className="zx-inner">
-        <div className="zx-foottop">
-          <div className="zx-footlead">
-            <div className="zx-footline">
-              You read the whole thing.{" "}
-              <em className="zx-serif">Now send the brief.</em>
-            </div>
-            <div className="zx-footcta">
-              <a
-                className="zx-btn zx-btn--acc"
-                href="#contact"
-                data-mag="2"
-                data-label="let's go"
-              >
-                <span>{HERO.cta}</span>
-                <span className="zx-btnarrow" aria-hidden="true">
-                  →
-                </span>
-              </a>
-              <a
-                className="zx-footmail"
-                href={`mailto:${CONTACT.email}`}
-                data-mag="2"
-                data-label="say hi"
-              >
-                {CONTACT.email}
-              </a>
-            </div>
-          </div>
+      {/*
+       * A rounded island rather than a full-bleed strip, with the hero's fluid
+       * filling it edge to edge behind a legibility veil. The page opens on
+       * that shader and closes on it — a bookend, not a fade to flat black.
+       * The loop gates on an IntersectionObserver, so this second instance
+       * costs nothing until the footer is on screen, by which point the
+       * hero's has gone idle.
+       */}
+      <div className="zx-footpanel">
+        <div className="zx-footfluid" aria-hidden="true">
+          <FluidCanvas />
+          {/* Frost first, tint second: the blur is masked so the top half of
+              the island reads as glass while the floor stays liquid. */}
+          <div className="zx-footfluidblur" />
+          <div className="zx-footfluidfade" />
+        </div>
 
-          <div className="zx-footcols">
-            <div>
-              <div className="zx-footcoltitle">Studio</div>
-              {FOOTER_LINKS.studio.map((l) => (
-                <a className="zx-footlink" href={l.href} key={l.label}>
-                  {l.label}
-                </a>
-              ))}
-            </div>
-            <div>
-              <div className="zx-footcoltitle">Elsewhere</div>
-              {FOOTER_LINKS.elsewhere.map((l) => (
-                <a className="zx-footlink" href={l.href} key={l.label}>
-                  {l.label}
-                </a>
-              ))}
-            </div>
-            <div>
-              <div className="zx-footcoltitle">Here</div>
-              {CONTACT.address.map((line) => (
-                <div className="zx-footfact" key={line}>
-                  {line}
-                </div>
-              ))}
-              <div
-                className="zx-footfact zx-footclock"
-                data-h="clock"
-                data-suffix="local"
-              >
-                --:--:--
-              </div>
-            </div>
+        <div className="zx-footinner">
+        <div className="zx-footlead">
+          <div className="zx-footline">
+            <span>You read the whole thing.</span>{' '}
+            <em className="zx-serif">Now send the brief.</em>
+          </div>
+          <div className="zx-footcta">
+            <a
+              className="zx-btn zx-btn--acc"
+              href="#contact"
+              data-mag="2"
+              data-label="let's go"
+            >
+              <span>{HERO.cta}</span>
+              <span className="zx-btnarrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+            <a
+              className="zx-footmail"
+              href={`mailto:${CONTACT.email}`}
+              data-mag="2"
+              data-label="say hi"
+            >
+              {CONTACT.email}
+            </a>
           </div>
         </div>
 
-        {/* Proof rather than a claim: the page reports what it is doing on the
-            reader's machine. See ControlRoom for why every value is measured. */}
-        <ControlRoom />
-
-        <Sticker />
-
-        {/* The page's largest element, so it carries a gradient rather than
-            sitting flat white. See useMotion: the entrance undoes its own
-            character split on completion, which is what lets
-            background-clip:text paint through. */}
-        <div className="zx-footmark" data-h="footmark">
-          Zext
+        {/* One hairline strip instead of three columns of sitemap — the finale
+            belongs to the statement and the wordmark. */}
+        <div className="zx-footnav">
+          <nav className="zx-fnavgroup" aria-label="Footer">
+            {FOOTER_LINKS.studio.map((l) => (
+              <a className="zx-fnavlink" href={l.href} key={l.label}>
+                {l.label}
+              </a>
+            ))}
+          </nav>
+          <div className="zx-fnavgroup">
+            {FOOTER_LINKS.elsewhere.map((l) => (
+              <a className="zx-fnavlink" href={l.href} key={l.label}>
+                {l.label}
+              </a>
+            ))}
+          </div>
+          <div className="zx-fnavgroup zx-fnavmeta">
+            <span>{CONTACT.address[0]}</span>
+            <span className="zx-footclock" data-h="clock" data-suffix="IST">
+              --:--:--
+            </span>
+          </div>
         </div>
 
-        <div className="zx-footbar">
-          {FOOTER_BAR.map((t) => (
-            <span key={t}>{t}</span>
-          ))}
+          <div className="zx-footbar">
+            {FOOTER_BAR.map((t) => (
+              <span key={t}>{t}</span>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

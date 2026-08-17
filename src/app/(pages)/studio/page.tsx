@@ -2,18 +2,15 @@ import type { Metadata } from "next";
 import { Instrument_Serif, Inter, Space_Grotesk } from "next/font/google";
 import StudioShell from "./StudioShell";
 import {
-  Clients,
   Contact,
   FaqSection,
   Footer,
   Hero,
   Manifesto,
   Nerve,
-  Receipts,
   Services,
   Signal,
   Stats,
-  Work,
 } from "./components/Sections";
 import "./studio.css";
 
@@ -44,11 +41,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Zext Digital — Websites that refuse to be scrolled past",
+  title: "Zext Digital | Websites that refuse to be scrolled past",
   description:
-    "An independent design and engineering studio. Strategy, identity, interface, motion and engineering under one roof — shipped in a nine-week median.",
+    "An independent design and engineering studio. Strategy, identity, interface, motion and engineering under one roof, shipped in a nine-week median.",
   openGraph: {
-    title: "Zext Digital — Websites that refuse to be scrolled past",
+    title: "Zext Digital | Websites that refuse to be scrolled past",
     description:
       "Independent design & engineering studio. Strategy, identity, interface, motion and engineering under one roof.",
     type: "website",
@@ -62,14 +59,11 @@ export default function StudioPage() {
     >
       <StudioShell>
         <Hero />
-        <Clients />
         <Manifesto />
         <Nerve />
         <Services />
         <Stats />
-        <Work />
         <Signal />
-        <Receipts />
         <FaqSection />
         <Contact />
         <Footer />

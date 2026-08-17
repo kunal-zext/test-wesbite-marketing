@@ -140,25 +140,28 @@ export function usePlane3D(canvasRef: React.RefObject<HTMLCanvasElement | null>)
       /* ---- materials --------------------------------------------------- */
       /*
        * The page background is near-black, so a dark hull disappears into it.
-       * The body is lit a good way up from the section's own surface tone and
-       * the edges run brighter than --acc, which is tuned for text on flat
-       * background rather than for a line sitting on top of a lit solid.
+       * The lift that keeps it visible comes from the hull's own --surface navy
+       * rather than a violet, so the aircraft reads as the same material as the
+       * buttons instead of as a purple object standing next to them. The purple
+       * stays in the rim light, where it is atmosphere rather than surface.
        *
        * DoubleSide because the ducts and aerofoils are open or mirrored shells;
        * back-face culling would punch holes in them from some angles.
        */
       const body = new THREE.MeshStandardMaterial({
-        color: 0x2b2560,
+        color: 0x1a2348,
         metalness: 0.55,
         roughness: 0.38,
-        emissive: 0x3d2b8a,
-        emissiveIntensity: 0.55,
+        emissive: 0x1a2348,
+        emissiveIntensity: 1.15,
         // Opaque: the departure no longer fades, so there is nothing to animate
         // here and no reason to pay for a transparent pass every frame.
         side: THREE.DoubleSide,
       });
+      // Edges on --acc, run brighter than the token: it is tuned for text on a
+      // flat background, not for a line sitting on top of a lit solid.
       const wire = new THREE.LineBasicMaterial({
-        color: 0xc9baff,
+        color: 0xbdeeff,
         transparent: true,
         opacity: 0.8,
       });

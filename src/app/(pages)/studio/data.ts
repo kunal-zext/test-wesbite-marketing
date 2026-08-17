@@ -4,7 +4,6 @@
  */
 
 export const NAV_LINKS = [
-  { href: "#work", label: "Work" },
   { href: "#studio", label: "Studio" },
   { href: "#process", label: "Process" },
   { href: "#faq", label: "FAQ" },
@@ -48,21 +47,10 @@ export const HERO = {
 } as const;
 
 export const TICKER = [
-  "Two build slots open — Q4 2026",
+  "Two build slots open for Q4 2026",
   "Median engagement: 9 weeks",
   "Mumbai / remote / everywhere",
   "We answer in under 24h",
-] as const;
-
-export const CLIENTS = [
-  "Obscura",
-  "Kraal Labs",
-  "Pale Blue",
-  "Vossberg",
-  "Meridian",
-  "Heliotrope",
-  "Atrium",
-  "Northwind",
 ] as const;
 
 /**
@@ -88,82 +76,36 @@ export const SERVICES = [
   },
 ] as const;
 
+/**
+ * The metrics reel. `value` is a display string rather than a target to count
+ * up to: the reel's own slide is the animation now, and a counter ticking
+ * inside a tile that is itself sliding reads as two effects fighting over the
+ * same glyphs. The label is split into a headline and a sentence because the
+ * card beside the tile has room for both, and a bare label left it empty.
+ */
 export const STATS = [
-  { to: 41, dec: 0, suffix: "", label: "Flagship builds shipped since 2019" },
-  { to: 0.9, dec: 1, suffix: "s", label: "Median LCP across every live client site" },
-  { to: 17, dec: 0, suffix: "", label: "Awwwards & FWA honours, unbought" },
-  { to: 4.9, dec: 1, suffix: "×", label: "Median lift in qualified demo requests" },
-] as const;
-
-/**
- * Case-study artwork is pure CSS in the original — layered gradients rather
- * than images, which is why the gallery has no network cost at all. Kept as-is.
- */
-export const CASES = [
   {
-    num: "01",
-    title: "Obscura",
-    desc: "A fragrance house rebuilt as a scent engine — you pick a mood, the site composes the bottle.",
-    meta: ["WebGL", "Next.js", "2026"],
-    art: "radial-gradient(80% 120% at 20% 15%,rgba(143,224,255,.34),transparent 55%),conic-gradient(from 200deg at 62% 58%,#1a1c1f,#2b2f34,#0e0f11,#232629,#1a1c1f)",
-    veils: [
-      "repeating-linear-gradient(115deg,rgba(255,255,255,.045) 0 1px,transparent 1px 7px)",
-    ],
-    veilBlend: true,
+    value: "41",
+    title: "Flagship builds",
+    desc: "Shipped since 2019. Every one designed, built and launched in-house. No white-label, no handoff.",
   },
   {
-    num: "02",
-    title: "Kraal Labs",
-    desc: "A robotics site that moves the way their arms do. Every transition is a real kinematic curve.",
-    meta: ["Three.js", "Sanity", "2026"],
-    art: "linear-gradient(135deg,#0d0f10 0%,#191d20 45%,#0a0b0c 100%),repeating-linear-gradient(60deg,rgba(143,224,255,.16) 0 2px,transparent 2px 24px)",
-    veils: [
-      "repeating-linear-gradient(60deg,rgba(143,224,255,.14) 0 2px,transparent 2px 26px)",
-      "radial-gradient(60% 60% at 78% 30%,rgba(143,224,255,.22),transparent 60%)",
-    ],
+    value: "0.9s",
+    title: "Median LCP",
+    desc: "Across every live client site. Motion-heavy pages that still load like static ones.",
   },
   {
-    num: "03",
-    title: "Pale Blue",
-    desc: "Twelve terabytes of climate data, one scroll. Streamed to the GPU, legible on a phone.",
-    meta: ["D3 · WebGL", "Edge", "2025"],
-    art: "radial-gradient(45% 55% at 25% 70%,rgba(143,224,255,.26),transparent 60%),radial-gradient(50% 50% at 75% 25%,rgba(140,82,255,.24),transparent 60%),linear-gradient(180deg,#0b0d0f,#15181b)",
-    veils: [
-      "linear-gradient(rgba(243,243,240,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(243,243,240,.06) 1px,transparent 1px)",
-    ],
-    veilSize: "44px 44px",
+    value: "17",
+    title: "Honours, unbought",
+    desc: "Awwwards and FWA recognition earned on the work itself, never on a submissions budget.",
   },
   {
-    num: "04",
-    title: "Vossberg",
-    desc: "A distillery founded in 1913, finally online. 112 years of archive, scanned and made walkable.",
-    meta: ["Astro", "Cloudflare", "2025"],
-    art: "radial-gradient(90% 70% at 50% 110%,rgba(143,224,255,.2),transparent 60%),linear-gradient(180deg,#14100c,#0b0a09 70%)",
-    veils: [
-      "repeating-radial-gradient(circle at 50% 105%,rgba(243,243,240,.07) 0 1px,transparent 1px 42px)",
-    ],
-  },
-  {
-    num: "05",
-    title: "Meridian",
-    desc: "Money software that isn't beige. We deleted 40% of the pages and doubled the demo rate.",
-    meta: ["Next.js", "Motion", "2025"],
-    art: "conic-gradient(from 90deg at 50% 50%,#0d0f10,#1d2226,#0a0b0c,#22282c,#0d0f10)",
-    veils: [
-      "radial-gradient(38% 38% at 50% 50%,rgba(140,82,255,.32),transparent 70%)",
-      "repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 2px,transparent 2px 5px)",
-    ],
+    value: "4.9×",
+    title: "Qualified demos",
+    desc: "Median lift in qualified demo requests after launch, measured against the site we replaced.",
   },
 ] as const;
 
-/**
- * The process, in order. Section 02 covers what we sell; this covers how the
- * work actually runs, so the two do not repeat each other.
- *
- * Each step drives one position on the wheel, so the count here sets the
- * rotation maths in useMotion. `art` is the gradient form that swaps behind the
- * copy — pure CSS, same approach as the case-study cards, so no image loads.
- */
 export const STAGES = [
   {
     title: "Brief",
@@ -197,32 +139,14 @@ export const STAGES = [
   },
 ] as const;
 
-export const QUOTES = [
-  {
-    text: "They pushed back on half our brief and were right about all of it. The rebuild paid for itself in eleven weeks.",
-    name: "Inês Carvalho",
-    role: "VP Marketing, Meridian",
-  },
-  {
-    text: "Our old site described the robots. This one behaves like them. Investors bring it up unprompted, which has never happened before.",
-    name: "Tobias Kraal",
-    role: "Founder, Kraal Labs",
-  },
-  {
-    text: "Six weeks kickoff to launch, and it's the fastest thing we've ever run. I still don't entirely understand how they did it.",
-    name: "Nadia Okonjo",
-    role: "Head of Digital, Pale Blue",
-  },
-] as const;
-
 export const FAQS = [
   {
     q: "What does a project actually cost?",
-    a: "Most engagements land between €45k and €160k. A focused marketing site with a real identity system starts around €45k; a flagship build with custom WebGL, a CMS and a nine-week runway sits in the middle. We quote fixed scope, fixed price, and we don't bill by the hour — that only rewards slowness.",
+    a: "Most engagements land between €45k and €160k. A focused marketing site with a real identity system starts around €45k; a flagship build with custom WebGL, a CMS and a nine-week runway sits in the middle. We quote fixed scope, fixed price, and we don't bill by the hour, which only rewards slowness.",
   },
   {
     q: "How long does it take?",
-    a: "Nine weeks is our median, kickoff to live. We've done six when the content was ready and fourteen when it wasn't. The single biggest variable is how fast you can make decisions — we'll tell you upfront which three people need to be in the room.",
+    a: "Nine weeks is our median, kickoff to live. We've done six when the content was ready and fourteen when it wasn't. The single biggest variable is how fast you can make decisions, and we'll tell you upfront which three people need to be in the room.",
   },
   {
     q: "Can you work alongside our in-house team?",
@@ -230,7 +154,7 @@ export const FAQS = [
   },
   {
     q: "Isn't all this motion bad for performance and accessibility?",
-    a: "It is when it's decoration. Every effect here is GPU-composited, pauses when offscreen, caps its own pixel ratio, and disappears entirely under prefers-reduced-motion. This page ships a 0.9s LCP and passes WCAG AA. Motion is a budget line like any other — we just spend it well.",
+    a: "It is when it's decoration. Every effect here is GPU-composited, pauses when offscreen, caps its own pixel ratio, and disappears entirely under prefers-reduced-motion. This page ships a 0.9s LCP and passes WCAG AA. Motion is a budget line like any other. We just spend it well.",
   },
   {
     q: "What if we hate the first direction?",
@@ -257,14 +181,11 @@ export const TIMELINES = ["Yesterday", "Next quarter", "This year, no rush"] as 
  */
 export const CONTACT = {
   email: "hello@zext.digital",
-  phone: "+351 21 000 0000",
-  phoneHref: "tel:+351210000000",
-  address: ["Mumbai, India", "Remote — everywhere else"],
+  address: ["Mumbai, India", "Remote, everywhere else"],
 } as const;
 
 export const FOOTER_LINKS = {
   studio: [
-    { href: "#work", label: "Work" },
     { href: "#process", label: "Process" },
     { href: "#faq", label: "FAQ" },
     { href: "#contact", label: "Start a project" },

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import type Lenis from "lenis";
 import { getPointerPower } from "./pointer";
 import { setAssembly } from "./assembly";
+import { setGauge } from "./gauge";
 
 /**
  * Splits every text node under `root` into per-character inline-blocks so GSAP
@@ -411,7 +412,7 @@ export function useMotion(
                 rotation: (n % 2 ? 1 : -1) * (0.6 + (n % 5) * 0.22),
                 // Light seams on dark glass: the crack is the highlight, and
                 // it is what makes a departing pane visible at all.
-                stroke: 'rgba(243,243,240,0.5)',
+                stroke: 'rgba(255,255,255,0.5)',
                 transformOrigin: '50% 50%',
                 duration: CRACK,
                 ease: 'power3.out',
@@ -514,283 +515,161 @@ export function useMotion(
       }
 
       initStats(false);
-      initGallery();
       initSignal(false);
-      initReceipts();
 
-      /* ---- footer wordmark ------------------------------------------- */
-      const footmark = q("footmark");
-      if (footmark) {
-        /*
-         * Revealed as one word by wiping its clip-path, not by splitting it into
-         * characters like the hero. The wordmark paints itself with
-         * background-clip:text, and a transformed child is its own rendering
-         * context — per-character spans would stop the gradient painting through
-         * and leave only a fragment of the Z visible. clip-path clips the
-         * rendered result instead of introducing children, so the two coexist,
-         * and it matches the wipe the rest of the page reveals sections with.
-         */
-        gsap.set(footmark, { clipPath: "inset(0% 0% 100% 0%)" });
-        ScrollTrigger.create({
-          trigger: footmark,
-          start: "top 95%",
-          once: true,
-          onEnter: () =>
-            gsap.to(footmark, {
-              clipPath: "inset(0% 0% 0% 0%)",
-              duration: 1.4,
-              ease: "expo.out",
-            }),
-        });
-        gsap.fromTo(
-          footmark,
-          { scale: 0.93 },
-          {
-            scale: 1,
-            ease: "none",
-            scrollTrigger: {
-              trigger: q("foot"),
-              start: "top bottom",
-              end: "bottom bottom",
-              scrub: 1,
-            },
-          },
-        );
-      }
 
       ScrollTrigger.refresh();
       // Web fonts settling can change section heights after first paint.
       const refresh = setTimeout(() => ScrollTrigger.refresh(), 900);
       cleanups.push(() => clearTimeout(refresh));
 
-      /* ---- counters --------------------------------------------------- */
+      /* ---- metrics tape ----------------------------------------------- */
+      /*
+       * A horizontal tape of display-scale values slides so that each takes
+       * the centre of the viewport in turn; the centred one fills solid while
+       * its neighbours stand as outlines. The copy below travels vertically
+       * with the same progress figure, so the two tracks read as one machine.
+       *
+       * The timeline alternates a move with a hold rather than running one
+       * continuous sweep — the hold is what makes it read as a value arriving,
+       * being shown, and then leaving.
+       */
       function initStats(instant: boolean) {
-        qa("stat").forEach((n) => {
-          const to = parseFloat(n.dataset.to ?? "0") || 0;
-          const dec = parseInt(n.dataset.dec ?? "0", 10) || 0;
-          const suffix = n.dataset.suffix ?? "";
-          if (instant) {
-            n.textContent = to.toFixed(dec) + suffix;
-            return;
-          }
-          const o = { v: 0 };
-          n.textContent = (0).toFixed(dec) + suffix;
-          ScrollTrigger.create({
-            trigger: n,
-            start: "top 88%",
-            once: true,
-            onEnter: () =>
-              gsap.to(o, {
-                v: to,
-                duration: 2.1,
-                ease: "expo.out",
-                onUpdate: () => {
-                  n.textContent = o.v.toFixed(dec) + suffix;
-                },
-              }),
+        const reel = q("mreel");
+        const sec = q("metrics");
+        const tape = q("mxtape");
+        if (!reel || !tape) return;
+
+        const vals = qa("mxval");
+        const fills = qa("mxfill");
+        const slots = qa("mslot");
+        const n = vals.length;
+        if (!n) return;
+
+        // Smoothstep on proximity to centre: the pour eases in and out
+        // instead of moving at a constant rate, which is what makes it read
+        // as liquid finding its level rather than a wiper blade.
+        const near = (i: number, p: number) => {
+          const t = Math.min(Math.max(1 - Math.abs(i - p), 0), 1);
+          return t * t * (3 - 2 * t);
+        };
+
+        /*
+         * Centred by measurement, not percentages: the values differ in width
+         * ("0.9s" against "17"), so the distance between their centres is
+         * irregular and only the layout knows it. Measured with the tape's
+         * transform cleared, because getBoundingClientRect reports transformed
+         * space and the offsets have to be in the tape's own.
+         */
+        let centers: number[] = [];
+        const measure = () => {
+          // Scale is part of the presentation, not the layout — cleared before
+          // measuring so a value caught mid-breath doesn't skew its centre.
+          gsap.set(tape, { x: 0 });
+          gsap.set(vals, { scale: 1 });
+          const left = tape.getBoundingClientRect().left;
+          centers = vals.map((v) => {
+            const r = v.getBoundingClientRect();
+            return r.left - left + r.width / 2;
           });
-        });
-      }
+        };
 
-      /* ---- horizontal case-study gallery ------------------------------ */
-      function initGallery() {
-        const sec = q("hgal");
-        const pin = q("hgalpin");
-        const track = q("hgaltrack");
-        const bar = q("hgalbar");
-        const count = q("hgalcount");
-        if (!sec || !track || !pin) return;
-        const cards = qa("card");
+        const at = { p: 0 };
+        const place = (p: number) => {
+          if (!centers.length) return;
+          // The tape position interpolates between neighbouring centres, so
+          // irregular gaps still hand over at a constant reading pace.
+          const i0 = Math.min(Math.floor(p), n - 1);
+          const f = p - i0;
+          const c =
+            i0 >= n - 1
+              ? centers[n - 1]
+              : centers[i0] + (centers[i0 + 1] - centers[i0]) * f;
+          gsap.set(tape, { x: reel.clientWidth / 2 - c });
 
-        const dist = () => Math.max(0, track.scrollWidth - window.innerWidth + 40);
-        const end = () => `+=${dist() + window.innerHeight * 0.4}`;
+          const active = Math.round(p);
+          vals.forEach((v, i) => {
+            v.dataset.on = i === active ? "1" : "0";
+            const f = near(i, p);
+            // The whole glyph breathes with its fill — rooted at the baseline
+            // so it grows upward the way the ink pours upward.
+            gsap.set(v, {
+              scale: 0.94 + 0.06 * f,
+              transformOrigin: "50% 85%",
+            });
+          });
+          // The pour: clip tracks proximity, revealed from the baseline up.
+          fills.forEach((el, i) => {
+            el.style.clipPath = `inset(${((1 - near(i, p)) * 100).toFixed(2)}% 0 0 0)`;
+          });
+          // The gyroscope reads this from its own frame loop, the same way
+          // the aeroplane reads the assembly store.
+          setGauge(n > 1 ? p / (n - 1) : 1);
+          /*
+           * The copy travels and fades. A title and a paragraph crossing the
+           * same slot in opposite directions is legible for neither, so each
+           * slot is gone well before the next arrives — hence the 1.8, which
+           * empties the box around the half-way point of a handover.
+           */
+          slots.forEach((item, i) => {
+            gsap.set(item, {
+              yPercent: (i - p) * 100,
+              opacity: Math.max(0, 1 - Math.abs(i - p) * 1.8),
+            });
+          });
+        };
 
-        gsap.to(track, {
-          x: () => -dist(),
-          ease: "none",
+        measure();
+        place(0);
+        /*
+         * The vw-driven type re-rasterises on resize, so the centres move.
+         * Re-measured on every refresh and re-placed at the current progress,
+         * which keeps the active value centred through the resize.
+         */
+        const remeasure = () => {
+          measure();
+          place(at.p);
+        };
+        ScrollTrigger.addEventListener("refresh", remeasure);
+        cleanups.push(() =>
+          ScrollTrigger.removeEventListener("refresh", remeasure),
+        );
+
+        if (instant || n < 2) return;
+
+        const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: sec,
-            pin,
-            start: "top top",
-            end,
-            scrub: 0.85,
+            trigger: sec ?? reel,
+            pin: sec ?? undefined,
+            start: "center center",
+            /*
+             * Roughly three quarters of a screen per handover, measured off the
+             * viewport rather than written as a percentage: ScrollTrigger
+             * resolves "+=100%" against the trigger's own height, and this
+             * section is taller than the viewport, which stretched the pin to
+             * about five screens for four values.
+             */
+            end: () => "+=" + (n - 1) * window.innerHeight * 0.88,
+            scrub: 0.6,
             invalidateOnRefresh: true,
-            onUpdate: (self) => {
-              if (bar) bar.style.width = `${8 + self.progress * 92}%`;
-              if (count) {
-                const i = Math.min(
-                  cards.length,
-                  Math.floor(self.progress * cards.length) + 1,
-                );
-                count.textContent = `${String(i).padStart(2, "0")} / ${String(cards.length).padStart(2, "0")}`;
-              }
-            },
           },
         });
-
-        cards.forEach((c, i) => {
-          const art = c.querySelector<HTMLElement>('[data-h="cardart"]');
-          if (art) {
-            gsap.fromTo(
-              art,
-              { xPercent: -6 },
-              {
-                xPercent: 6,
-                ease: "none",
-                scrollTrigger: { trigger: sec, start: "top top", end, scrub: 1 },
-              },
-            );
-          }
-          // Alternating vertical drift gives the row a loose, hand-placed feel.
-          gsap.fromTo(
-            c,
-            { y: i % 2 ? 34 : 0 },
-            {
-              y: i % 2 ? -34 : 0,
-              ease: "none",
-              scrollTrigger: { trigger: sec, start: "top top", end, scrub: 1.2 },
-            },
-          );
-        });
-      }
-
-      /* ---- pinned five-stage process ---------------------------------- */
-      /*
-       * The wheel.
-       *
-       * Numbers are mounted at fixed angles SPOKE degrees apart and the whole
-       * container rotates with scroll, so each number inherits the turn and
-       * reads as tilted. Whichever one reaches the marker looks upright because
-       * its own spoke angle and the wheel angle cancel there — nothing is
-       * counter-rotated, it is a clock face being turned.
-       *
-       * The rotation is continuous while the highlight snaps to the nearest
-       * step, which is what gives the number its sense of clicking into place.
-       */
-      /*
-       * The testimonial deck. The section pins and the cards leave one at a
-       * time, front of the pile first — which is the last one in the DOM,
-       * since they share a grid cell and paint in source order.
-       *
-       * Each card owns a 1/N slice of the pin: it sits in the deck until its
-       * slice arrives, throws itself up and off through it, and is gone after.
-       * While it waits it promotes — the cards in front of it leaving is what
-       * moves it forward — so `depth` counts down continuously rather than
-       * snapping a step at a time.
-       */
-      function initReceipts() {
-        const pin = q("testipin");
-        const cards = qa("testicard");
-        if (!pin || !cards.length) return;
-
-        const N = cards.length;
-        const mark = pin.querySelector<HTMLElement>(".zx-testimark");
-        const sub = pin.querySelector<HTMLElement>(".zx-testisub");
-        const head = pin.querySelector<HTMLElement>(".zx-shead");
-
+        const advance = () => place(at.p);
         /*
-         * The pin runs in two acts. The deck deals through the first, then the
-         * wordmark — which has been sitting behind it as a watermark the whole
-         * time — takes the screen: it lights up, scales past the viewer and is
-         * gone. Nothing is left to look at once the last card goes otherwise,
-         * and the word is already there doing nothing.
+         * An opening hold, so the first value gets the same dwell as the rest.
+         * Without it the timeline starts on a move: the section finishes
+         * pinning and the reel immediately begins handing over, which means the
+         * first metric is only ever read on the way in and never at rest.
          */
-        const CARD_VH = N * 74;
-        const ZOOM_VH = 130;
-        const CARD_END = CARD_VH / (CARD_VH + ZOOM_VH);
-
-        /*
-         * On narrow screens the wordmark rests above the deck rather than
-         * behind it, so the takeover has to bring it back to the middle or it
-         * blows up around a point a third of the way down and leaves the rest
-         * of the screen empty. Measured rather than hard-coded, since the rest
-         * position is a CSS breakpoint the script does not know about — and
-         * cached, because reading layout on a frame that has already written
-         * transforms to the cards would force a reflow every scroll tick.
-         */
-        let liftPx = 0;
-        let markHalf = 0;
-        const measure = () => {
-          if (!mark) return;
-          liftPx = pin.offsetHeight / 2 - mark.offsetTop;
-          markHalf = mark.offsetHeight / 2;
-        };
-        measure();
-
-        const place = (p: number) => {
-          const cardP = Math.min(1, p / CARD_END);
-          const zoomP = Math.min(
-            1,
-            Math.max(0, (p - CARD_END) / (1 - CARD_END)),
-          );
-
-          cards.forEach((c, i) => {
-            const order = N - 1 - i; // 0 = front of the pile, leaves first
-            const scaled = cardP * N;
-            const t = Math.min(1, Math.max(0, scaled - order));
-            const depth = Math.min(N, Math.max(0, order - scaled));
-            const rest = Number.parseFloat(c.style.getPropertyValue("--rest")) || 0;
-            c.style.transform =
-              `translate3d(0, calc(${(depth * 15).toFixed(1)}px - ${(t * 116).toFixed(2)}vh), 0)` +
-              ` rotate(${(rest - t * 24).toFixed(2)}deg)` +
-              ` scale(${(1 - depth * 0.05).toFixed(3)})`;
-            // Behind the ones still in front of it.
-            c.style.zIndex = String(N - order);
-          });
-
-          // Shared by the wordmark and the line above it: how far the takeover
-          // has come up out of the background, and so how far both have
-          // travelled back to centre on the layouts that rest them off it.
-          const lit = Math.min(1, zoomP / 0.22);
-          /*
-           * Eased in hard rather than linearly. A constant rate reads as the
-           * word merely getting bigger; ramping it means the last stretch of
-           * scroll throws it past you, which is the whole point of the move.
-           */
-          const scale = 1 + 8 * Math.pow(zoomP, 2.1);
-
-          if (mark) {
-            // Gone over the last fifth.
-            const spent = Math.max(0, (zoomP - 0.8) / 0.2);
-            mark.style.transform =
-              `translate(-50%, calc(-50% + ${(liftPx * lit).toFixed(1)}px))` +
-              ` scale(${scale.toFixed(3)})`;
-            mark.style.opacity = ((0.055 + 0.945 * lit) * (1 - spent)).toFixed(3);
-          }
-          /*
-           * The line arrives ahead of the word and is gone before it engulfs
-           * the screen — it introduces the takeover, so leaving it up while the
-           * letters swallow the viewport would just leave it stranded on top of
-           * them. Rises as it fades in, the way the reference does.
-           */
-          if (sub) {
-            const on = Math.min(1, zoomP / 0.18);
-            const off = Math.max(0, (zoomP - 0.34) / 0.24);
-            sub.style.opacity = (on * (1 - Math.min(1, off))).toFixed(3);
-            sub.style.setProperty("--sub-rise", `${(16 * (1 - on)).toFixed(1)}px`);
-            sub.style.setProperty("--sub-lift", `${(liftPx * lit).toFixed(1)}px`);
-            sub.style.setProperty(
-              "--sub-push",
-              `${(markHalf * (scale - 1)).toFixed(1)}px`,
-            );
-          }
-          // The section number would sit over the top of the takeover.
-          if (head) {
-            head.style.opacity = (1 - Math.min(1, zoomP / 0.3)).toFixed(3);
-          }
-        };
-
-        place(0);
-        ScrollTrigger.create({
-          trigger: pin,
-          pin,
-          start: "top top",
-          end: `+=${CARD_VH + ZOOM_VH}%`,
-          scrub: 0.6,
-          invalidateOnRefresh: true,
-          onRefresh: measure,
-          onUpdate: (self) => place(self.progress),
-        });
+        tl.to(at, { p: 0, duration: 0.6, onUpdate: advance });
+        for (let i = 1; i < n; i++) {
+          tl.to(at, {
+            p: i,
+            duration: 1,
+            ease: "power2.inOut",
+            onUpdate: advance,
+          }).to(at, { p: i, duration: 0.6, onUpdate: advance });
+        }
       }
 
       function initSignal(instant: boolean) {
