@@ -3,6 +3,12 @@
  * components stay pure layout and the marketing team can edit one file.
  */
 
+/*
+ * Listed in the order the page presents them, so the nav reads as a map.
+ * A { href: "#work", label: "Work" } entry belongs between Process and FAQ,
+ * but only once WORK below has entries — a nav link to a section that renders
+ * nothing scrolls the reader to the wrong place.
+ */
 export const NAV_LINKS = [
   { href: "#studio", label: "Studio" },
   { href: "#process", label: "Process" },
@@ -106,6 +112,97 @@ export const STATS = [
   },
 ] as const;
 
+/**
+ * The four things a good website does. Each is a lead claim plus the reason,
+ * split so the claim can carry the card and the reason can sit under it.
+ */
+export const PILLARS = [
+  {
+    num: "01",
+    title: "It loads fast.",
+    desc: "A quick site keeps visitors around long enough to explore, so we build yours to open fast on any connection.",
+  },
+  {
+    num: "02",
+    title: "It works on phones.",
+    desc: "That is where most of your visitors are, so yours is easy to read and tap on a small screen.",
+  },
+  {
+    num: "03",
+    title: "It ranks on Google.",
+    desc: "Clear structure and strong content help the right people find you in search.",
+  },
+  {
+    num: "04",
+    title: "It shows up in AI answers.",
+    desc: "Tools like ChatGPT and Gemini now answer questions directly, so we write yours to be found and cited there too.",
+  },
+] as const;
+
+/**
+ * What actually lands in your hands, in the order the engagement produces it.
+ *
+ * Deliverables, deliberately — not benefits. PILLARS above already argues what
+ * a good website *does*; this section used to repeat those same four claims in
+ * different words, which read to a visitor as the page stuttering rather than
+ * as a second beat. Framed as deliverables it answers the pillars instead of
+ * echoing them: there is the claim, and here is the thing you receive.
+ *
+ * Every line here is a commitment STAGES or FAQS already makes elsewhere on
+ * the page — nothing new is promised in this list.
+ */
+export const INCLUDED = [
+  {
+    title: "Design & art direction",
+    desc: "Layouts, type and motion made for your business, art-directed by people rather than assembled from a template.",
+  },
+  {
+    title: "Words & structure",
+    desc: "Copy written and pages organised as part of the build, so nothing ships full of placeholder text.",
+  },
+  {
+    title: "Production code",
+    desc: "Built in Next.js against a performance budget enforced from the first component, and accessible by default.",
+  },
+  {
+    title: "Search groundwork",
+    desc: "Metadata, structured data and clean markup in place at launch, so Google and AI answer engines can read it from day one.",
+  },
+  {
+    title: "Launch & handover",
+    desc: "We deploy it, hand over the keys and run a handover week, so nothing about the build stays a mystery to your team.",
+  },
+  {
+    title: "Post-launch tuning",
+    desc: "We measure what actually happened after go-live and cut whatever did not earn its place.",
+  },
+] as const;
+
+/**
+ * Selected work — empty, so the section does not render.
+ *
+ * There is nothing publishable to show yet, and a page that invents case
+ * studies to fill the gap is worse than a page with one fewer section. The
+ * section builds itself from this array and returns null while it is empty, so
+ * nothing about the running order has to be touched to keep it hidden.
+ *
+ * To bring it back, add entries in this shape:
+ *
+ *   { name: "Manufacturing site rebuild",
+ *     sector: "Industrial · Mumbai",
+ *     result: "A twelve-year-old site rebuilt around what buyers search for." }
+ *
+ * `result` is a sentence rather than a number on purpose: quote a figure only
+ * where the client has agreed it may be published. Re-adding the section also
+ * means putting its nav link back below and renumbering the three sections
+ * that follow it — see the running order in page.tsx.
+ */
+export const WORK: ReadonlyArray<{
+  name: string;
+  sector: string;
+  result: string;
+}> = [];
+
 export const STAGES = [
   {
     title: "Brief",
@@ -139,26 +236,38 @@ export const STAGES = [
   },
 ] as const;
 
+/**
+ * Supplied by the studio, and kept verbatim.
+ *
+ * They map onto SERVICES rather than wandering: the first answers "Build from
+ * your brief", the last answers "Audit & revamp", and the AEO/GEO one explains
+ * the middle offer in plain words. The ordering runs from the objection a
+ * first-time client raises soonest to the one they raise last.
+ */
 export const FAQS = [
   {
-    q: "What does a project actually cost?",
-    a: "Most engagements land between €45k and €160k. A focused marketing site with a real identity system starts around €45k; a flagship build with custom WebGL, a CMS and a nine-week runway sits in the middle. We quote fixed scope, fixed price, and we don't bill by the hour, which only rewards slowness.",
+    q: "What if I don't have a website yet?",
+    a: "That is the most common way clients start with us. You bring a business brief or a company profile, and we articulate it into a finished website. You do not need anything built already.",
   },
   {
-    q: "How long does it take?",
-    a: "Nine weeks is our median, kickoff to live. We've done six when the content was ready and fourteen when it wasn't. The single biggest variable is how fast you can make decisions, and we'll tell you upfront which three people need to be in the room.",
+    q: "How long does a website take to build?",
+    a: "Because our build is AI accelerated, most sites go live in weeks rather than months. The exact timeline depends on the number of pages and the content involved, which we confirm on the first call.",
   },
   {
-    q: "Can you work alongside our in-house team?",
-    a: "Happily, and it's usually the best outcome. We'll pair with your engineers from week one, work in your repo, follow your conventions, and run a handover week at the end so nothing about the build is a mystery. Roughly half our projects run this way.",
+    q: "What is AEO and GEO content?",
+    a: "AEO (Answer Engine Optimization) and GEO (Generative Engine Optimization) mean writing your website so AI tools like ChatGPT and Gemini can find, understand and cite it, not just traditional Google search. It is how you stay visible as more people ask AI instead of searching.",
   },
   {
-    q: "Isn't all this motion bad for performance and accessibility?",
-    a: "It is when it's decoration. Every effect here is GPU-composited, pauses when offscreen, caps its own pixel ratio, and disappears entirely under prefers-reduced-motion. This page ships a 0.9s LCP and passes WCAG AA. Motion is a budget line like any other. We just spend it well.",
+    q: "Where is Zext Digital based?",
+    a: "We are based in Mumbai and work with clients across India.",
   },
   {
-    q: "What if we hate the first direction?",
-    a: "Then we killed it early and cheaply, which is the point of showing you moving work in week three. You get three art-direction passes inside the fixed fee. In seven years nobody has needed a fourth, but if you do, we'll keep going until it's right.",
+    q: "Is an AI built website cheaper?",
+    a: "Yes. Building with AI cuts the time and manual work a traditional agency spends, and we pass that saving on, so you get comparable quality for less. The exact price depends on what your site needs, which we confirm on the first call.",
+  },
+  {
+    q: "Can you fix our existing website instead of rebuilding it?",
+    a: "Often, yes. That is what an audit tells us. Sometimes a revamp of your current site is enough, sometimes a rebuild makes more sense. We will be straight with you about which.",
   },
 ] as const;
 

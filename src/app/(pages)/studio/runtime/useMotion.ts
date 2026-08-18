@@ -231,6 +231,29 @@ export function useMotion(
         cleanups.push(() => cancelAnimationFrame(raf));
       }
 
+      /*
+       * Refresh order for the pinned sections, highest first.
+       *
+       * A pin adds a spacer the height of its own scroll range, so every pin
+       * moves everything below it further down the document. ScrollTrigger
+       * therefore has to measure them from the top of the page downwards; left
+       * to itself it measures them in the order they were *created*, and these
+       * are not created in document order — which meant the metrics pin
+       * computed its start before the pins above it had claimed their space
+       * and engaged around three thousand pixels early, covering the section
+       * above it with a fixed panel.
+       *
+       * Keep these numbers in the same order as the sections in page.tsx. If a
+       * section moves, move its number with it.
+       */
+      const PIN_ORDER = {
+        nerve: 5,
+        pillars: 4,
+        signal: 3,
+        build: 2,
+        metrics: 1,
+      } as const;
+
       if (reduced) {
         initStats(true);
         initSignal(true);
@@ -397,6 +420,8 @@ export function useMotion(
               end: '+=150%',
               scrub: 0.7,
               invalidateOnRefresh: true,
+              // Topmost pin on the page; see the note on PIN_ORDER.
+              refreshPriority: PIN_ORDER.nerve,
             },
           });
 
@@ -514,6 +539,8 @@ export function useMotion(
         );
       }
 
+      initPillars();
+      initBuild();
       initStats(false);
       initSignal(false);
 
@@ -652,6 +679,7 @@ export function useMotion(
             end: () => "+=" + (n - 1) * window.innerHeight * 0.88,
             scrub: 0.6,
             invalidateOnRefresh: true,
+            refreshPriority: PIN_ORDER.metrics,
           },
         });
         const advance = () => place(at.p);
@@ -670,6 +698,224 @@ export function useMotion(
             onUpdate: advance,
           }).to(at, { p: i, duration: 0.6, onUpdate: advance });
         }
+      }
+
+      /* ---- the stack --------------------------------------------------- */
+      /*
+       * Six slabs, slammed into a stack one at a time. Each owns a 1/N slice
+       * of the pin: it waits off to one side, flies in as its slice passes,
+       * and takes a short overshoot on impact before settling — which is what
+       * makes it read as landing rather than arriving.
+       *
+       * Sides alternate so the stack builds from both directions instead of
+       * marching in from one, and the slab that landed most recently stays lit
+       * while the ones under it settle back.
+       */
+      function initBuild() {
+        const sec = q("bld");
+        const pin = q("bldpin");
+        const slabs = qa("bldslab");
+        const bays = qa("bldbay");
+        const stack = q("bldstack");
+        const count = q("bldcount");
+        const n = slabs.length;
+        if (!sec || !pin || !n) return;
+
+        /*
+         * Hand every plate its own band of the picture. Measured rather than
+         * assumed: the plates are laid out by content, so their heights are
+         * not identical and a computed fraction would misalign the bands.
+         * Re-run on refresh, because the type — and so the heights — change
+         * with the viewport.
+         */
+        const cut = () => {
+          if (!stack) return;
+          // Layout metrics, not bounding boxes: the plates are transformed off
+          // to the sides while they wait, and a measured rect would hand them
+          // bands cut from wherever they currently sit rather than from where
+          // they will land. offsetTop is untouched by transforms.
+          const h = stack.offsetHeight;
+          const first = bays[0];
+          if (!h || !first || bays.length !== slabs.length) return;
+          slabs.forEach((slab, i) => {
+            // Measured off the bays, not the plates. The bays are the stack's
+            // real layout — they never move — whereas each plate is positioned
+            // inside its own bay and so reports an offsetTop of zero. Taking
+            // the first bay as the origin keeps this correct however the stack
+            // above it is positioned.
+            const y = bays[i].offsetTop - first.offsetTop;
+            slab.style.setProperty("--bgh", h.toFixed(1) + "px");
+            slab.style.setProperty("--bgy", (-y).toFixed(1) + "px");
+          });
+        };
+
+        const place = (p: number) => {
+          const front = p * n;
+          slabs.forEach((slab, i) => {
+            const local = front - i;
+            if (local <= 0) {
+              // Waiting off-stage, on its own side.
+              gsap.set(slab, {
+                xPercent: i % 2 ? 118 : -118,
+                rotate: i % 2 ? 5 : -5,
+                opacity: 0,
+                scale: 1,
+              });
+              return;
+            }
+            if (local >= 1.3) {
+              gsap.set(slab, { xPercent: 0, rotate: 0, opacity: 1, scale: 1 });
+              return;
+            }
+            const t = Math.min(1, local);
+            // Fast in, slow to settle: the slab covers most of its travel
+            // early, so the eye reads an impact rather than a glide.
+            const e = 1 - Math.pow(1 - t, 3);
+            // The bounce: a brief swell right at the moment of contact.
+            const hit = Math.max(0, 1 - Math.abs(local - 1) * 6);
+            gsap.set(slab, {
+              xPercent: (i % 2 ? 118 : -118) * (1 - e),
+              rotate: (i % 2 ? 5 : -5) * (1 - e),
+              opacity: Math.min(1, t * 3),
+              scale: 1 + hit * 0.035,
+            });
+          });
+          const at = Math.min(n - 1, Math.max(0, Math.ceil(front) - 1));
+          slabs.forEach((s, i) => {
+            s.dataset.on = i === at && front > 0.05 ? "1" : "0";
+          });
+          if (count) count.textContent = `0${at + 1} / 0${n}`;
+        };
+
+        cut();
+        if (reduced) {
+          slabs.forEach((s) => {
+            s.style.removeProperty("transform");
+            s.style.removeProperty("opacity");
+          });
+          return;
+        }
+
+        place(0);
+        ScrollTrigger.create({
+          trigger: sec,
+          pin: pin ?? undefined,
+          start: "center center",
+          // Half a screen per slab: six landings should feel brisk, not like
+          // six separate scroll journeys.
+          end: () => "+=" + n * window.innerHeight * 0.5,
+          scrub: 0.6,
+          invalidateOnRefresh: true,
+          refreshPriority: PIN_ORDER.build,
+          onRefresh: cut,
+          onUpdate: (self) => place(self.progress),
+        });
+      }
+
+      /* ---- the deck ---------------------------------------------------- */
+      /*
+       * Four cards, thrown one at a time. The section pins and each card owns
+       * a 1/N slice of that pin: it waits in the deck, flings itself up and
+       * off the screen through its slice, and the cards behind it promote
+       * forward as it goes.
+       *
+       * Depth is continuous rather than stepped — a card's distance from the
+       * front is `i - progress * n`, so the ones waiting glide up the pile
+       * while the front one leaves, instead of snapping a place at a time.
+       *
+       * The deck only stacks once this runs. Until then (and forever under
+       * reduced motion) the cards stay in their CSS grid, which is why the
+       * section reads fine with no JavaScript.
+       */
+      function initPillars() {
+        const sec = q("pil");
+        const pin = q("pilpin");
+        const deck = q("pdeck");
+        const cards = qa("pcard");
+        const count = q("pilcount");
+        const items = qa("pilitem");
+        const n = cards.length;
+        if (!sec || !pin || !deck || !n) return;
+
+        deck.dataset.deck = "1";
+        // Front of the pile paints on top: the first card is the first thrown.
+        cards.forEach((c, i) => {
+          c.style.zIndex = String(n - i);
+        });
+
+        const place = (p: number) => {
+          /*
+           * Saturates at the last card rather than running past it. Left to
+           * reach n, the final card is thrown too and the section ends on an
+           * empty tray — the reader scrolls a whole screen of nothing before
+           * the pin lets go. Stopping one short spends that last slice
+           * holding on the closing claim instead.
+           */
+          const front = Math.min(p * n, n - 1);
+          cards.forEach((card, i) => {
+            const depth = i - front;
+            if (depth > 0) {
+              // Waiting in the pile: stepped back and down, dimmed with depth.
+              const d = Math.min(depth, 3);
+              gsap.set(card, {
+                yPercent: d * 7,
+                scale: 1 - d * 0.05,
+                rotate: 0,
+                xPercent: 0,
+                opacity: depth > 2.6 ? Math.max(0, 1 - (depth - 2.6) / 0.6) : 1,
+              });
+              return;
+            }
+            if (depth <= -1) {
+              gsap.set(card, { opacity: 0 });
+              return;
+            }
+            /*
+             * Leaving. t runs 0→1 across the card's own slice; it lifts, drifts
+             * to alternating sides and spins the way it drifts, so the deck
+             * reads as thrown by hand rather than dismissed by a machine.
+             */
+            const t = -depth;
+            const dir = i % 2 ? 1 : -1;
+            gsap.set(card, {
+              yPercent: -150 * t * t,
+              xPercent: dir * 46 * t * t,
+              rotate: dir * 17 * t,
+              scale: 1 + t * 0.05,
+              opacity: 1 - Math.max(0, (t - 0.55) / 0.4),
+            });
+          });
+          // Only the card in front runs its diagram; see the paused rule in
+          // studio.css. Four looping diagrams behind each other is noise.
+          const at = Math.min(n - 1, Math.max(0, Math.round(front)));
+          cards.forEach((c, i) => {
+            c.dataset.front = i === at ? "1" : "0";
+          });
+          // The index tracks the same card, so the left column always agrees
+          // with what is on top of the deck.
+          items.forEach((it, i) => {
+            it.dataset.on = i === at ? "1" : "0";
+          });
+          if (count) {
+            count.textContent = `0${at + 1} / 0${n}`;
+          }
+        };
+
+        place(0);
+        if (reduced) return;
+
+        ScrollTrigger.create({
+          trigger: sec,
+          pin: pin ?? undefined,
+          start: "center center",
+          // Roughly three quarters of a screen per card, measured off the
+          // viewport: "+=100%" would resolve against the trigger's own height.
+          end: () => "+=" + n * window.innerHeight * 0.75,
+          scrub: 0.7,
+          invalidateOnRefresh: true,
+          refreshPriority: PIN_ORDER.pillars,
+          onUpdate: (self) => place(self.progress),
+        });
       }
 
       function initSignal(instant: boolean) {
@@ -757,6 +1003,7 @@ export function useMotion(
           end: `+=${steps.length * 62}%`,
           scrub: 0.6,
           invalidateOnRefresh: true,
+          refreshPriority: PIN_ORDER.signal,
           onUpdate: (self) => {
             const p = self.progress;
             // Nearest step, so the highlight lands as a number passes the mark.

@@ -534,7 +534,8 @@ export default function ScopeForm() {
   return (
     <div ref={rootRef}>
       <div className="zx-shead">
-        <span className="zx-snum">05</span>
+        {/* Last in the running order; see the section map in page.tsx. */}
+        <span className="zx-snum">08</span>
         <span>Scope your project</span>
         <span className="zx-sline" />
         <span>{sent ? "Sent" : `Step ${step + 1} of ${STEPS}`}</span>

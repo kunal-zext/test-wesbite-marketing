@@ -12,14 +12,15 @@ import { useFluid } from "../runtime/useFluid";
  */
 export default function FluidCanvas() {
   const ref = useRef<HTMLCanvasElement>(null);
-  const [accent, setAccent] = useState("#8c52ff");
+  const [accent, setAccent] = useState("#8fe0ff");
 
   useEffect(() => {
     const root = ref.current?.closest<HTMLElement>(".zx");
     if (!root) return;
-    // --brand, not --acc: the hero is lit in brand primary, while the accent
-    // type and fills across the page use brand secondary.
-    const acc = getComputedStyle(root).getPropertyValue("--brand").trim();
+    // --acc: the shader is lit in the same cyan the accent type, rails and
+    // fills use across the page, so the hero and the footer open and close on
+    // the page's own colour rather than on a second one.
+    const acc = getComputedStyle(root).getPropertyValue("--acc").trim();
     if (acc) setAccent(acc);
   }, []);
 

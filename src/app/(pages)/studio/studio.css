@@ -31,11 +31,16 @@
    *              shell there — 57 call sites — while purple appears as text
    *              exactly twice. This page had the relationship inverted.
    *              13.8:1 on the page background.
-   *   --acc-fill loud accent fills (service-row wipe, selected chip, badges),
-   *              carrying white labels at 5.4:1.
-   *   --brand    brand primary. Glows, button rings and the hero fluid only —
-   *              the same job it has on the marketing site, which never sets
-   *              it as a text colour.
+   *   --acc-fill loud accent fills (service-row wipe, selected chip, text
+   *              selection). The same cyan as --acc, so a filled surface and
+   *              the accent type on the page are one colour rather than two.
+   *              It is a light fill, so its label is near-black, not white:
+   *              white on this cyan is 1.47:1 and unreadable, while the ink
+   *              below sits at 13.4:1.
+   *   --onacc    the label colour that goes on --acc-fill. Always change the
+   *              two together; every call site pairs them.
+   *   --brand    brand primary. Glows and button rings — the same job it has
+   *              on the marketing site, which never sets it as a text colour.
    *   --surface  brand tertiary (`bg-tertiary`). The button surface, matching
    *              the home page CTA.
    *
@@ -43,13 +48,13 @@
    * .hero-title-gradient-animated class, the same treatment as the home page
    * headline, so the two pages animate identically.
    *
-   * The WebGL hero reads --brand off this element at runtime — the fluid is lit
-   * in brand primary, independent of the flat accent above.
+   * The WebGL fluid in the hero and the footer reads --acc off this element at
+   * runtime, so the shader is lit in the same cyan as the accent type.
    */
   --acc: #8fe0ff;
   --acc-rgb: 143 224 255;
-  --acc-fill: #7a41f5;
-  --onacc: #ffffff;
+  --acc-fill: #8fe0ff;
+  --onacc: #07080c;
   --brand: #8c52ff;
   --brand-rgb: 140 82 255;
   --surface: #1a2348;
@@ -1123,9 +1128,18 @@
   position: relative;
   z-index: 1;
   /*
-   * White throughout. The letters are visible flying in against the dark page,
-   * pass into the wall on impact — white on white, which reads as being taken
-   * by it — and come back out as the glass clears off the dark backing.
+   * White, and deliberately the only display moment on the page that carries
+   * no accent colour. Cyan was tried here and read as branding: the word is
+   * the page's most aggressive assertion — "the thing your last agency didn't
+   * have" — and cyan softened exactly the word that should not be soft. The
+   * rest of the page is already cyan throughout, so this reads as contrast
+   * rather than as an oversight.
+   *
+   * The one thing cyan did better was the break itself: the sentence printed
+   * on the glass is white too, so mid-shatter the word coming through the hole
+   * is the same colour as the fragments flying off the surface. If that ever
+   * needs solving, tween this to cyan across the shatter and back to white as
+   * the panes clear, rather than repainting the resting state.
    */
   color: #f3f3f0;
   font-family: var(--font-grotesk), sans-serif;
@@ -1149,6 +1163,70 @@
 }
 
 /* Services ----------------------------------------------------------- */
+/* Selected work ---------------------------------------------------------- */
+/*
+ * Three plates, side by side, wearing the same machined face as the build
+ * stack — this is evidence, so it should look like it came off the same line
+ * as everything else the page has shown. No pinning and no scroll act: by this
+ * point the reader has sat through four set pieces and what they want here is
+ * to look at the work, not to operate another mechanism.
+ */
+.zx-workgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(14px, 1.6vw, 24px);
+  margin-top: clamp(28px, 4vh, 56px);
+}
+.zx-workcard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: clamp(24px, 2.6vw, 40px);
+  border-radius: 14px;
+  background: linear-gradient(
+    158deg,
+    rgb(var(--surface-rgb) / 0.9),
+    rgb(var(--surface-rgb) / 0.45) 62%,
+    var(--bg2)
+  );
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.13),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 20px 44px -30px rgb(0 0 0 / 0.95);
+  transition:
+    box-shadow 0.45s var(--ease),
+    transform 0.45s var(--ease);
+}
+.zx-workcard:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
+    inset 0 0 0 1px rgb(var(--acc-rgb) / 0.28),
+    0 26px 56px -28px rgb(0 0 0 / 0.95);
+}
+.zx-worksector {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(var(--acc-rgb) / 0.85);
+}
+.zx-workname {
+  margin: 0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(19px, 1.7vw, 27px);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.zx-workresult {
+  margin: 0;
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.55;
+  color: var(--dim);
+}
+
 .zx-svcwrap {
   display: flex;
   flex-direction: column;
@@ -1239,9 +1317,822 @@
     color: var(--onacc);
     padding-left: 22px;
   }
+  /*
+   * The dimmed parts of the row need lifting once the fill lands under them.
+   * These opacities were set for pale text on a near-black page; the same
+   * values over a light cyan fill wash the ink out to roughly 3.7:1, under the
+   * minimum for type this small. Raised, the index and arrow clear 7:1.
+   */
+  .zx-svc:hover .zx-svcnum,
+  .zx-svc:hover .zx-svcarrow {
+    opacity: 0.78;
+  }
+  .zx-svc:hover .zx-svcdesc {
+    opacity: 0.84;
+  }
 }
 
 /* Stats -------------------------------------------------------------- */
+/* What makes a website work ------------------------------------------- */
+/*
+ * Four claims as a deck the reader throws. The section pins and each card
+ * flings itself off screen through its own slice of the pin; useMotion writes
+ * the transforms, so this file only describes what a card is.
+ *
+ * Until the deck is stacked (data-deck, set by the motion layer) the cards sit
+ * in a plain grid — which is what a reader with no JavaScript, or reduced
+ * motion, gets.
+ */
+.zx-pillars {
+  position: relative;
+  z-index: 2;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.zx-pilpin {
+  width: 100%;
+  max-width: var(--wide);
+  margin: 0 auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(26px, 4vh, 52px);
+  padding: calc(var(--navh) + clamp(26px, 4vh, 60px)) var(--pad)
+    clamp(26px, 4vh, 60px);
+}
+.zx-plede {
+  margin: clamp(14px, 2vh, 22px) 0 0;
+  max-width: 60ch;
+  font-size: clamp(14px, 1.15vw, 17px);
+  line-height: 1.62;
+  color: var(--dim);
+}
+
+.zx-pdeck {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+/*
+ * Stacked: every card shares one cell and fills the section's whole width, so
+ * a claim arrives at the same scale as everything else on this page rather
+ * than as a box floating in a lot of empty room. The pile needs its own
+ * height because absolutely-stacked children give the grid nothing to measure.
+ */
+.zx-pdeck[data-deck='1'] {
+  position: relative;
+  display: block;
+  height: clamp(400px, 60vh, 620px);
+  perspective: 1400px;
+}
+/*
+ * The tray the deck sits in. The cards are thrown clear one by one, and the
+ * last one leaves an empty box the height of the pin behind it; without a
+ * tray that box is bare background, which reads as the section having broken
+ * rather than having finished. The recess stays put, so the deck empties into
+ * something instead of into nothing.
+ */
+.zx-pdeck[data-deck='1']::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  background: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 0.55),
+    rgb(var(--surface-rgb) / 0.2)
+  );
+  box-shadow:
+    inset 0 4px 14px -3px rgb(0 0 0 / 0.9),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.zx-pdeck[data-deck='1'] .zx-pcard {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  transform-origin: 50% 60%;
+  will-change: transform, opacity;
+}
+
+.zx-pcard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(24px, 4vw, 72px);
+  padding: clamp(28px, 4vw, 68px);
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background:
+    linear-gradient(
+      150deg,
+      rgb(var(--surface-rgb) / 0.96),
+      rgb(var(--surface-rgb) / 0.55) 62%,
+      var(--bg2)
+    );
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+    0 40px 90px -40px rgb(0 0 0 / 0.95);
+}
+/* The number, at the scale the rest of the page uses: hollow, so it reads as
+   structure rather than competing with the claim beside it. */
+.zx-pnum {
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(56px, 8vw, 150px);
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  -webkit-text-stroke: 2px rgb(var(--acc-rgb) / 0.42);
+}
+.zx-pcopy {
+  min-width: 0;
+}
+.zx-ptitle {
+  margin: 0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(30px, 4.6vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.zx-pdesc {
+  margin: clamp(14px, 1.8vh, 24px) 0 0;
+  max-width: 44ch;
+  font-size: clamp(14px, 1.25vw, 19px);
+  line-height: 1.58;
+  color: var(--dim);
+}
+
+@media (max-width: 900px) {
+  .zx-pdeck[data-deck='1'] {
+    height: clamp(380px, 62vh, 520px);
+  }
+  .zx-pcard {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    gap: clamp(14px, 3vw, 24px);
+  }
+  /* The diagram is the first thing to go when there is no room for it. */
+  .zx-part {
+    display: none;
+  }
+  .zx-pnum {
+    font-size: clamp(44px, 13vw, 84px);
+  }
+}
+
+/* The diagram on each card ---------------------------------------------- */
+/*
+ * A framed panel per claim, in the page's own ink: hairline frames, dim
+ * content blocks, accent on the one thing the claim is about. They animate
+ * only on the card at the front of the deck — every other card holds its
+ * diagram paused, so at most one runs at a time.
+ */
+.zx-part {
+  width: clamp(180px, 24vw, 380px);
+}
+.zx-part svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.zx-pa-frame {
+  fill: rgb(10 10 11 / 0.5);
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 1.5;
+}
+.zx-pa-rule {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1.5;
+}
+.zx-pa-dot {
+  fill: rgba(255, 255, 255, 0.2);
+}
+.zx-pa-notch {
+  fill: rgba(255, 255, 255, 0.25);
+}
+.zx-pa-blk {
+  fill: rgba(255, 255, 255, 0.22);
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+.zx-pa-track {
+  fill: rgba(255, 255, 255, 0.1);
+}
+
+/* 01 — the loader fills, then the page snaps in behind it. */
+.zx-pa-fill {
+  fill: var(--acc);
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.zx-pa-blk[data-i="3"] {
+  fill: rgb(var(--acc-rgb) / 0.75);
+}
+
+/* 02 — the tap. */
+.zx-pa-ripple {
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.zx-pa-tip {
+  fill: rgb(var(--acc-rgb) / 0.9);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* 03 — the winning result. */
+.zx-pa-lens {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.zx-pa-win rect:first-child {
+  fill: rgb(var(--surface-rgb) / 0.9);
+  stroke: rgb(var(--acc-rgb) / 0.45);
+  stroke-width: 1.5;
+}
+.zx-pa-mark {
+  fill: var(--acc);
+  stroke: none;
+}
+.zx-pa-win {
+  transform-box: view-box;
+}
+.zx-pa-row .zx-pa-blk {
+  fill: rgba(255, 255, 255, 0.14);
+}
+
+/* 04 — the answer that cites you. */
+.zx-pa-ask {
+  fill: rgb(var(--surface-rgb) / 0.9);
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 1.5;
+}
+.zx-pa-cite {
+  fill: rgb(var(--acc-rgb) / 0.14);
+  stroke: rgb(var(--acc-rgb) / 0.5);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+.zx-pa-citedot {
+  fill: var(--acc);
+}
+.zx-pa-citebar {
+  fill: rgb(var(--acc-rgb) / 0.7);
+}
+
+/*
+ * Everything below only runs on the front card. Declared paused so a deck of
+ * four never has four diagrams animating behind each other.
+ */
+.zx-pa-fill,
+.zx-pa-ripple,
+.zx-pa-tip,
+.zx-pa-win,
+.zx-pa-cite,
+.zx-pa-citedot,
+.zx-part .zx-pa-blk {
+  animation-play-state: paused;
+}
+.zx-pcard[data-front="1"] .zx-pa-fill,
+.zx-pcard[data-front="1"] .zx-pa-ripple,
+.zx-pcard[data-front="1"] .zx-pa-tip,
+.zx-pcard[data-front="1"] .zx-pa-win,
+.zx-pcard[data-front="1"] .zx-pa-cite,
+.zx-pcard[data-front="1"] .zx-pa-citedot,
+.zx-pcard[data-front="1"] .zx-part .zx-pa-blk {
+  animation-play-state: running;
+}
+
+.zx-pa-fill {
+  animation: zx-pafill 3.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+@keyframes zx-pafill {
+  0% {
+    transform: scaleX(0);
+  }
+  22%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+/* Content snapping in behind the loader, one beat apart. */
+.zx-part .zx-pa-blk {
+  animation: zx-pasnap 3.4s ease-out infinite;
+}
+.zx-part .zx-pa-blk[data-i="1"] {
+  animation-delay: 0.06s;
+}
+.zx-part .zx-pa-blk[data-i="2"] {
+  animation-delay: 0.12s;
+}
+.zx-part .zx-pa-blk[data-i="3"] {
+  animation-delay: 0.18s;
+}
+.zx-part .zx-pa-blk[data-i="4"] {
+  animation-delay: 0.24s;
+}
+@keyframes zx-pasnap {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  14%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.zx-pa-ripple {
+  animation: zx-paripple 2.6s ease-out infinite;
+}
+@keyframes zx-paripple {
+  0%,
+  40% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  55% {
+    opacity: 0.9;
+    transform: scale(0.7);
+  }
+  85%,
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+.zx-pa-tip {
+  animation: zx-patip 2.6s ease-out infinite;
+}
+@keyframes zx-patip {
+  0%,
+  40% {
+    transform: scale(1);
+  }
+  52% {
+    transform: scale(0.72);
+  }
+  70%,
+  100% {
+    transform: scale(1);
+  }
+}
+/* The result climbing into the top slot. */
+.zx-pa-win {
+  animation: zx-pawin 3.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+@keyframes zx-pawin {
+  0%,
+  10% {
+    transform: translateY(28px);
+    opacity: 0.4;
+  }
+  38%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.zx-pa-cite {
+  animation: zx-pacite 3.6s ease-out infinite;
+}
+@keyframes zx-pacite {
+  0%,
+  55% {
+    transform: scaleX(0.001);
+    opacity: 0;
+  }
+  70%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+.zx-pa-citedot {
+  animation: zx-pacitedot 3.6s ease-out infinite;
+}
+@keyframes zx-pacitedot {
+  0%,
+  62% {
+    opacity: 0;
+  }
+  76% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zx-part * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* In every build ------------------------------------------------------- */
+/*
+ * The section builds. Six machined plates fly in from alternating sides and
+ * slam into a stack as the reader scrolls; by the time they leave, the stack
+ * is complete — the claim, made physically.
+ *
+ * The plates wear the same material as the aeroplane and the gyroscope: navy
+ * face lit from above-left, a dark edge underneath giving real thickness, a
+ * cyan rail along the leading edge. They are set almost touching, because a
+ * stack of plates touches — a gapped row of rounded cards reads as a list.
+ *
+ * Server-rendered as ordinary grid rows; the motion layer only transforms
+ * them, so with no JavaScript the stack is simply already built.
+ */
+.zx-build {
+  position: relative;
+  z-index: 2;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.zx-bldpin {
+  width: 100%;
+  max-width: var(--wide);
+  margin: 0 auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(var(--navh) + clamp(24px, 4vh, 54px)) var(--pad)
+    clamp(24px, 4vh, 54px);
+  /* Contains the plates while they are still off to the sides. */
+  overflow: hidden;
+}
+.zx-bldlede {
+  margin: clamp(14px, 2vh, 22px) 0 clamp(10px, 1.4vh, 16px);
+  max-width: 44ch;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(24px, 3.2vw, 50px);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+/* The line that hands the reader over from the process section to this one. */
+.zx-bldsub {
+  margin: 0 0 clamp(24px, 3.6vh, 46px);
+  max-width: 62ch;
+  font-size: clamp(13px, 1.05vw, 16px);
+  line-height: 1.6;
+  color: var(--dim);
+}
+/* Nearly touching: this is a stack, not a list. */
+.zx-bldstack {
+  display: grid;
+  gap: 5px;
+  /*
+   * What the stack resolves into: one light field, declared here and shared
+   * by every plate. Each plate shows only its own band of it, so it means
+   * nothing until the last plate seats and the field runs unbroken from the
+   * cyan at the top-left to the violet at the bottom-right — six parts, one
+   * finished thing.
+   *
+   * Light rather than a picture, and that is the whole point. A photograph
+   * or a drawing has to survive the scrim that keeps this copy readable, and
+   * nothing does: it flattens to a smear at any strength that protects the
+   * text. A gradient has no detail to lose, so it stays legible through the
+   * scrim and still reads as one continuous object across the stack.
+   *
+   * The two blooms are placed left of centre and are cut off by the scrim
+   * before they reach the body copy, so the glow lives on the number side
+   * and the reading side of every plate stays dark.
+   */
+  --bld-field: radial-gradient(
+      90% 260% at 26% -10%,
+      rgb(var(--acc-rgb) / 0.85),
+      transparent 52%
+    ),
+    radial-gradient(
+      90% 240% at 52% 130%,
+      rgb(var(--brand-rgb) / 0.9),
+      transparent 55%
+    );
+}
+
+/*
+ * The empty bay each plate drops into: a recess milled into the chassis, cut
+ * to exactly the plate's size. Visible from the moment the section is pinned,
+ * so the stack reads as a machine waiting to be filled rather than as a blank
+ * stretch of page — and so every plate visibly lands in a place that was
+ * already there for it.
+ *
+ * Deliberately unpositioned. The plates measure their bands off each other's
+ * offsetTop, and positioning the bay would make it their offsetParent and
+ * collapse every one of those measurements to zero.
+ */
+.zx-bldbay {
+  position: relative;
+  border-radius: 9px;
+  /*
+   * The floor is lighter than the page, not darker. Against a near-black
+   * background a dark fill is simply invisible; what makes a recess read is
+   * a floor the eye can see, with the shadow of the lip falling across it.
+   */
+  background: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 0.55),
+    rgb(var(--surface-rgb) / 0.24)
+  );
+  box-shadow:
+    inset 0 3px 7px -2px rgb(0 0 0 / 0.9),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.07),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+/*
+ * The waiting row, laid out on exactly the plate's grid so the ghost sits
+ * under the type that will replace it and the swap lands without a shift.
+ * Absolute, so the plate alone decides how tall the bay is.
+ */
+.zx-bldghost {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.34;
+}
+.zx-bldghost .zx-bldnum {
+  -webkit-text-stroke-color: rgba(255, 255, 255, 0.3);
+}
+.zx-bldghost .zx-bldtitle {
+  color: var(--dim);
+}
+.zx-bldghost .zx-bldart {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+/*
+ * number | claim | reason | glyph | pip.
+ *
+ * The claim column is narrower than it looks like it should be on purpose. Set
+ * wide enough for the longest title, every shorter one left a dead band of a
+ * couple of hundred pixels before the reason began, which is what made the
+ * plates read as half-empty. Trimmed, the two text columns sit close enough to
+ * scan as one line while still aligning down the stack.
+ */
+.zx-bldslab,
+.zx-bldghost {
+  display: grid;
+  grid-template-columns: auto minmax(0, 0.62fr) minmax(0, 1.4fr) auto auto;
+  align-items: center;
+  gap: clamp(14px, 1.9vw, 34px);
+  padding: clamp(13px, 1.7vh, 23px) clamp(22px, 2.4vw, 40px);
+}
+/*
+ * The glyph. Dim while the plate waits, accent once it seats — it inherits
+ * `color`, so the whole state change is one property.
+ */
+.zx-bldart {
+  display: grid;
+  place-items: center;
+  width: clamp(30px, 2.9vw, 46px);
+  color: rgba(255, 255, 255, 0.32);
+  transition: color 0.45s var(--ease);
+}
+.zx-bldart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.zx-bldslab[data-on="1"] .zx-bldart {
+  color: var(--acc);
+}
+
+.zx-bldslab {
+  position: relative;
+  /* Machined radius, not card radius. */
+  border-radius: 9px;
+  /*
+   * Top to bottom: a machined hatch so this still reads as milled metal and
+   * not a gradient card, the scrim that opens at the left and closes hard
+   * under the body copy, this plate's band of the shared light field, and
+   * the plate's own navy base. --bgh and --bgy are written by the motion
+   * layer from the stack's measured geometry, so the bands line up exactly
+   * whatever the plates end up being.
+   */
+  background-image:
+    repeating-linear-gradient(
+      96deg,
+      rgba(255, 255, 255, 0.04) 0 1px,
+      transparent 1px 5px
+    ),
+    linear-gradient(
+      94deg,
+      rgb(var(--surface-rgb) / 0.1),
+      rgb(var(--surface-rgb) / 0.55) 34%,
+      rgb(var(--surface-rgb) / 0.93) 58%
+    ),
+    var(--bld-field),
+    linear-gradient(
+      158deg,
+      rgb(var(--surface-rgb) / 0.98),
+      rgb(var(--surface-rgb) / 0.5) 58%,
+      var(--bg2)
+    );
+  background-size:
+    auto,
+    auto,
+    100% var(--bgh, 100%),
+    100% var(--bgh, 100%),
+    auto;
+  background-position:
+    0 0,
+    0 0,
+    50% var(--bgy, 0),
+    50% var(--bgy, 0),
+    0 0;
+  background-repeat: no-repeat;
+  /*
+   * The plate, in four layers: light catching the top edge, a dark edge face
+   * along the bottom that gives it thickness, a rim, and the shadow it casts
+   * onto the plate below.
+   */
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+    inset 0 -3px 0 0 rgb(0 0 0 / 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 12px 22px -12px rgb(0 0 0 / 0.9);
+  will-change: transform, opacity;
+  transition: box-shadow 0.45s var(--ease);
+}
+/* The leading edge: a rail that lights when the plate lands. */
+.zx-bldslab::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 11px;
+  bottom: 11px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: rgb(var(--acc-rgb) / 0.22);
+  transition:
+    background 0.45s var(--ease),
+    box-shadow 0.45s var(--ease),
+    top 0.45s var(--ease),
+    bottom 0.45s var(--ease);
+}
+.zx-bldslab[data-on="1"] {
+  /*
+   * Seated: the scrim eases off at the left so this plate's band of the
+   * field brightens as it locks in. It still closes to full strength before
+   * the body copy — the plate lights up, the text never pays for it.
+   */
+  background-image:
+    repeating-linear-gradient(
+      96deg,
+      rgba(255, 255, 255, 0.05) 0 1px,
+      transparent 1px 5px
+    ),
+    linear-gradient(
+      94deg,
+      rgb(var(--surface-rgb) / 0),
+      rgb(var(--surface-rgb) / 0.4) 34%,
+      rgb(var(--surface-rgb) / 0.92) 58%
+    ),
+    var(--bld-field),
+    linear-gradient(
+      158deg,
+      rgb(var(--surface-rgb) / 0.96),
+      rgb(var(--surface-rgb) / 0.42) 58%,
+      var(--bg2)
+    );
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 -3px 0 0 rgb(0 0 0 / 0.55),
+    inset 0 0 0 1px rgb(var(--acc-rgb) / 0.3),
+    0 16px 34px -14px rgb(0 0 0 / 0.95),
+    0 0 44px -14px rgb(var(--acc-rgb) / 0.32);
+}
+.zx-bldslab[data-on="1"]::before {
+  top: 4px;
+  bottom: 4px;
+  background: var(--acc);
+  box-shadow: 0 0 18px rgb(var(--acc-rgb) / 0.8);
+}
+
+/* The number sits in its own bay, cut off by a groove. */
+.zx-bldnum {
+  padding-right: clamp(16px, 1.9vw, 32px);
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(22px, 2.4vw, 40px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  /*
+   * White at rest, not cyan: the number bay sits inside the light field, and
+   * a cyan outline on a cyan field has nothing to separate against. White is
+   * the one hue the field never reaches, so it holds at every position in the
+   * stack — and it makes the switch to cyan on landing read as the number
+   * lighting up rather than merely brightening.
+   */
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.42);
+  transition: -webkit-text-stroke-color 0.45s var(--ease);
+}
+.zx-bldslab[data-on="1"] .zx-bldnum {
+  -webkit-text-stroke-color: rgb(var(--acc-rgb) / 0.95);
+}
+.zx-bldtitle {
+  margin: 0;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(17px, 1.75vw, 29px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.zx-blddesc {
+  margin: 0;
+  font-size: clamp(12.5px, 1vw, 15.5px);
+  line-height: 1.5;
+  color: var(--dim);
+}
+/* The status pip at the far end: dark until the plate is seated, then lit. */
+.zx-bldpip {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: rgb(0 0 0 / 0.4);
+  transition:
+    background 0.45s var(--ease),
+    border-color 0.45s var(--ease),
+    box-shadow 0.45s var(--ease);
+}
+.zx-bldslab[data-on="1"] .zx-bldpip {
+  border-color: var(--acc);
+  background: var(--acc);
+  box-shadow: 0 0 14px rgb(var(--acc-rgb) / 0.9);
+}
+
+@media (max-width: 860px) {
+  .zx-bldpin {
+    min-height: 0;
+    padding-top: clamp(50px, 8vh, 90px);
+    padding-bottom: clamp(50px, 8vh, 90px);
+  }
+  /*
+   * Narrow: number | claim over reason | glyph | pip. The ghost has to keep
+   * the same track list as the plate or the two stop lining up, so both are
+   * restated here rather than only the plate.
+   */
+  .zx-bldslab,
+  .zx-bldghost {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: start;
+    row-gap: 8px;
+  }
+  /* The reason moves under the claim rather than shrinking beside it. */
+  .zx-blddesc {
+    grid-column: 2;
+  }
+  .zx-bldart,
+  .zx-bldpip {
+    align-self: center;
+  }
+  /* Both the glyph and the pip span the stacked claim/reason rows. */
+  .zx-bldart {
+    grid-column: 3;
+    grid-row: 1 / -1;
+  }
+  .zx-bldpip {
+    grid-column: 4;
+    grid-row: 1 / -1;
+  }
+}
+/* Tightest widths: the glyph is the first thing to go, not the copy. */
+@media (max-width: 560px) {
+  .zx-bldart {
+    display: none;
+  }
+}
+
 /* Metrics tape ------------------------------------------------------- */
 /*
  * The numbers are the section. One horizontal tape of display-scale values
@@ -1774,6 +2665,13 @@
   }
 }
 /* FAQ ---------------------------------------------------------------- */
+/*
+ * Two columns from tablet up: the title block holds the left, the questions
+ * run down the right. Full width, the accordion stretched a six-line list
+ * across the whole measure and left the right half of the section empty —
+ * plenty of air with nothing in it, which is what made this the flattest
+ * section on the page.
+ */
 .zx-faqgrid {
   max-width: var(--wide);
   margin: 0 auto;
@@ -1781,9 +2679,76 @@
   grid-template-columns: 1fr;
   gap: clamp(28px, 4vw, 60px);
 }
+@media (min-width: 900px) {
+  .zx-faqgrid {
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(40px, 5vw, 96px);
+  }
+  /*
+   * The title stays with the reader while they work down the questions. Offset
+   * by the nav so a sticky heading never sits underneath it.
+   */
+  .zx-faqhead {
+    position: sticky;
+    top: calc(var(--navh) + clamp(24px, 5vh, 64px));
+  }
+}
 .zx-faqgrid .zx-shead {
   margin-bottom: 0;
 }
+/*
+ * The section's own title block. Set at display scale like the ledes on the
+ * pillars and the handover, so the FAQ opens the way every other section on
+ * the page opens rather than dropping straight into an accordion.
+ */
+.zx-faqlede {
+  margin: clamp(14px, 2vh, 22px) 0 0;
+  max-width: 30ch;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(24px, 3.2vw, 50px);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.zx-faqask {
+  margin: clamp(18px, 2.4vh, 30px) 0 0;
+  max-width: 34ch;
+  font-size: clamp(13px, 1.05vw, 16px);
+  line-height: 1.6;
+  color: var(--dim);
+}
+/* Underline grows from the left on hover, like the footer's mail link. */
+.zx-faqcta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-bottom: 3px;
+  font-family: var(--font-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: clamp(14px, 1.1vw, 17px);
+  letter-spacing: -0.01em;
+  color: var(--acc);
+  text-decoration: none;
+  background-image: linear-gradient(var(--acc), var(--acc));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size 0.45s var(--ease);
+}
+.zx-faqcta:hover {
+  background-size: 100% 1px;
+}
+.zx-faqcta span {
+  transition: transform 0.45s var(--ease);
+}
+.zx-faqcta:hover span {
+  transform: translateX(4px);
+}
+
 .zx-acc {
   border-top: 1px solid var(--line);
 }

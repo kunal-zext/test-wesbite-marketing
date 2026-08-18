@@ -14,16 +14,21 @@ import {
   FOOTER_BAR,
   FOOTER_LINKS,
   HERO,
+  INCLUDED,
+  PILLARS,
   SERVICES,
   STAGES,
   STATS,
   TICKER,
+  WORK,
 } from "../data";
 import FluidCanvas from "./FluidCanvas";
 import Plane from "./Plane";
 import Faq from "./Faq";
 import ScopeForm from "./ScopeForm";
 import Gauge from "./Gauge";
+import { PILLAR_ART } from "./PillarArt";
+import { BUILD_ART } from "./BuildArt";
 
 function SectionHead({
   num,
@@ -431,18 +436,155 @@ export function Services() {
  * each copy slot carries the figure in a visually-hidden span instead, so a
  * screen reader hears "41 — Flagship builds" exactly once.
  */
+/**
+ * What makes a website work: four claims as a deck the reader throws.
+ *
+ * The section pins and each card owns a 1/N slice of the pin: it waits in the
+ * deck, then flings itself up and off the screen through its slice, and the
+ * ones behind promote forward as it goes. Server-rendered — the deck is a
+ * plain grid of cards until useMotion stacks it, so the copy is complete and
+ * readable with no JavaScript and under reduced motion.
+ */
+export function Pillar() {
+  return (
+    <section className="zx-pillars" id="pillars" data-h="pil">
+      <div className="zx-pilpin" data-h="pilpin">
+        <div className="zx-pilhead">
+          <SectionHead
+            num="03"
+            title="What makes a website work"
+            aside={`01 / 0${PILLARS.length}`}
+            asideProps={{ "data-h": "pilcount" }}
+          />
+          <p className="zx-plede">
+            A website earns its keep when it does a few things well. Whether we
+            build yours from a brief or improve one you already have, we make
+            sure it does all four.
+          </p>
+        </div>
+
+        <div className="zx-pdeck" data-h="pdeck">
+          {PILLARS.map((p, i) => (
+            <article
+              className="zx-pcard"
+              data-h="pcard"
+              key={p.num}
+              style={{ "--d": i } as React.CSSProperties}
+            >
+              <span className="zx-pnum">{p.num}</span>
+              <div className="zx-pcopy">
+                <h3 className="zx-ptitle">{p.title}</h3>
+                <p className="zx-pdesc">{p.desc}</p>
+              </div>
+              <div className="zx-part" aria-hidden="true">
+                {PILLAR_ART[i]}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * What you get.
+ *
+ * The section builds. Six slabs fly in from alternating sides and slam into a
+ * stack as the reader scrolls, and by the time they leave, the stack is
+ * complete — which is the claim the copy is making, made physically.
+ *
+ * It sits directly after the process because it answers it: those are the five
+ * steps, and this is what the five steps hand you. It deliberately no longer
+ * restates the four pillars — that made two consecutive sections say the same
+ * thing and read as a stutter rather than as a second beat.
+ *
+ * Stacking is the one verb this page had left: the deck throws, the tape
+ * slides, the aeroplane assembles in the air, the robot sweeps. Nothing yet
+ * had put things down on top of each other.
+ *
+ * Server-rendered as a plain list of slabs, so with no JavaScript — or under
+ * reduced motion — the stack is simply already built.
+ */
+export function Build() {
+  return (
+    <section className="zx-build" id="included" data-h="bld">
+      <div className="zx-bldpin" data-h="bldpin">
+        <SectionHead
+          num="05"
+          title="What you get"
+          aside={`01 / 0${INCLUDED.length}`}
+          asideProps={{ "data-h": "bldcount" }}
+        />
+        <p className="zx-bldlede">
+          Every engagement hands over the same six things.
+        </p>
+        {/* Ties this section to the one above it: those were the steps, these
+            are what the steps produce. Without it the stack reads as a fresh
+            list rather than as the answer to the process. */}
+        <p className="zx-bldsub">
+          Whatever the brief, those five steps end in the same handover. Fixed
+          scope, nothing itemised back to you later.
+        </p>
+
+        <div className="zx-bldstack" data-h="bldstack">
+          {INCLUDED.map((item, i) => (
+            /*
+             * The bay: the recess this plate lands in, holding a ghosted copy
+             * of the row it is waiting for. The whole list is therefore
+             * legible from the moment the section pins — the reader is never
+             * looking at a blank panel, and each plate arriving reads as its
+             * line being made solid rather than as a card appearing from
+             * nowhere. The ghost is decorative; the plate carries the real
+             * text, so nothing here is announced twice.
+             */
+            <div className="zx-bldbay" data-h="bldbay" key={item.title}>
+              <span className="zx-bldghost" aria-hidden="true">
+                <span className="zx-bldnum">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="zx-bldtitle">{item.title}</span>
+                <span />
+                <span className="zx-bldart">{BUILD_ART[i]}</span>
+                <span className="zx-bldpip" />
+              </span>
+              <article className="zx-bldslab" data-h="bldslab">
+                <span className="zx-bldnum">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="zx-bldtitle">{item.title}</h3>
+                <p className="zx-blddesc">{item.desc}</p>
+                <span className="zx-bldart" aria-hidden="true">
+                  {BUILD_ART[i]}
+                </span>
+                <span className="zx-bldpip" aria-hidden="true" />
+              </article>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function Stats() {
   return (
     <section className="zx-metrics" data-h="metrics">
       <div className="zx-metricsinner">
-        <SectionHead title="By the numbers" aside="Measured, not claimed." />
+        <SectionHead
+          num="06"
+          title="By the numbers"
+          aside="Measured, not claimed."
+        />
 
         <div className="zx-mreel" data-h="mreel">
           {/*
            * The instrument, in three dimensions this time: a gyroscope — the
-           * thing an aircraft actually measures with, and the bridge to the
-           * aeroplane two sections down. It wears the airframe's exact
-           * materials, its outer gimbal turns a quarter-revolution per metric
+           * thing an aircraft actually measures with, and a callback to the
+           * aeroplane the reader watched assemble back in the process section.
+           * It wears that airframe's exact materials, so the machine the page
+           * built earlier is now the machine measuring itself. Its outer
+           * gimbal turns a quarter-revolution per metric
            * with the scroll, and the inner rings precess on their own time so
            * it stays alive between readings.
            */}
@@ -523,8 +665,8 @@ export function Signal() {
 
         <div className="zx-siginner">
           <SectionHead
-            num="03"
-            title="How it works"
+            num="04"
+            title="How we work"
             aside="Five steps. Weeks, not months."
           />
 
@@ -558,11 +700,68 @@ export function Signal() {
   );
 }
 
+/**
+ * Selected work.
+ *
+ * The page claimed 41 flagship builds and showed none of them: a studio that
+ * sells websites never displayed a website it had made, which is the largest
+ * hole the running order had. It sits after the deliverables and before the
+ * metrics, so the argument runs claim → method → deliverable → evidence →
+ * measurement rather than asking the reader to take the numbers on trust.
+ *
+ * Renders nothing at all when WORK is empty, which is how it currently ships —
+ * there is no publishable work yet. An empty section is honest; a section of
+ * invented case studies is not, so the page would rather have a shorter
+ * running order than a fabricated one.
+ *
+ * Adding entries to WORK brings this back at position 06, which means By the
+ * numbers, Straight answers and the contact form all shift down one — they are
+ * numbered 06, 07 and 08 while this is hidden.
+ */
+export function Work() {
+  if (!WORK.length) return null;
+  return (
+    <section className="zx-sec zx-sec--alt" id="work" data-r="wipe">
+      <div className="zx-inner">
+        <SectionHead num="06" title="Selected work" />
+        <div className="zx-workgrid">
+          {WORK.map((w) => (
+            <article className="zx-workcard" key={w.name} data-r="up">
+              <span className="zx-worksector">{w.sector}</span>
+              <h3 className="zx-workname">{w.name}</h3>
+              <p className="zx-workresult">{w.result}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function FaqSection() {
   return (
     <section className="zx-sec" id="faq">
       <div className="zx-faqgrid">
-        <SectionHead num="04" title="Straight answers" />
+        {/* Head and lede are one block: the grid's gap is sized to separate
+            the title block from the accordion, which is far too much air
+            between a heading and the line that belongs to it. */}
+        <div className="zx-faqhead">
+          <SectionHead num="07" title="Questions" />
+          <p className="zx-faqlede">Things people ask us.</p>
+          {/*
+           * The column would otherwise be a heading above a large empty space,
+           * and this is the last thing before the form: a reader whose question
+           * is not on the list needs somewhere to go other than back up.
+           */}
+          <p className="zx-faqask">
+            Not the one you had in mind? Send a brief and we will answer it on
+            the first call.
+          </p>
+          <a className="zx-faqcta" href="#contact" data-mag="1" data-label="go">
+            Start a project
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
         <Faq />
       </div>
     </section>
