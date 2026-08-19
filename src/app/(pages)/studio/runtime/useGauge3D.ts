@@ -6,24 +6,16 @@ import { getGauge } from "./gauge";
 /**
  * The metrics gyroscope, in WebGL.
  *
- * A three-ring gimbal with a spin axis through the middle — the instrument an
- * aircraft actually measures with, which is what ties this section to the
- * aeroplane two sections down. Built from primitives, no asset to download,
- * and `three` is already fetched for the hero shader so this shares that
- * chunk.
+ * A three-ring gimbal with a spin axis through it — the instrument an aircraft
+ * measures with, tying this section to the aeroplane. Built from primitives,
+ * wearing the aeroplane's materials exactly, so the two read as one kit.
  *
- * The materials are the aeroplane's exactly — navy hull lifted by its own
- * emissive, cyan edge lines, purple rim light — so the two objects read as
- * parts of one kit rather than props from different films.
+ * Motion runs on two clocks: the outer gimbal is the scroll's, turning a
+ * quarter-revolution per metric and eased toward its target; the inner rings
+ * precess on wall time, so the instrument stays alive while the reader holds
+ * still. Reduced motion leaves only the scroll clock.
  *
- * Motion runs on two clocks. The outer gimbal is the scroll's: it turns a
- * quarter-revolution per metric, eased toward its target so it arrives with
- * the weight of a real armature. The inner rings precess gently on wall time,
- * so the instrument is visibly alive even while the reader holds still —
- * unless they prefer reduced motion, in which case only the scroll clock runs.
- *
- * Same discipline as the aeroplane: the loop idles offscreen and in hidden
- * tabs, and repaints once on resize.
+ * Idles offscreen and in hidden tabs, repainting once on resize.
  */
 export function useGauge3D(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,

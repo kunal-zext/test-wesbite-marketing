@@ -154,7 +154,7 @@ export function SchedulerModal({ open, leadId, onClose, onBooked }: Props) {
             </p>
           ) : days.length === 0 ? (
             <p className="py-10 text-center text-sm text-white/55">
-              No open times in the next 7 days. We&apos;ll reach out to schedule.
+              No open times in the next 7 days — we&apos;ll reach out to schedule.
             </p>
           ) : (
             <div className="flex flex-col gap-6">

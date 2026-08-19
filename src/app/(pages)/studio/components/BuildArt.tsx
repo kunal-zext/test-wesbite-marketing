@@ -1,18 +1,12 @@
 /**
  * One glyph per deliverable, for the plates in "What you get".
  *
- * The section was the only major one on the page carrying no artefact — the
- * pillars have their diagrams, the process has the aeroplane, the metrics have
- * the gyroscope — and it read as a list of sentences rather than as a set of
- * things you receive. These give each plate an object to be identified by.
+ * The page's technical-drawing idiom: thin strokes, no fills, all on the same
+ * 48-unit square so they match optically in a stack. They paint in
+ * `currentColor`, so the plate owns the colour and this file knows nothing
+ * about the section's state.
  *
- * Drawn in the page's technical-drawing idiom: thin strokes, no fills, plenty
- * of air, and every one built on the same 48-unit square so they optically
- * match in a stack. They paint in `currentColor`, so the plate decides the
- * colour — dim while it waits, accent once it lands — without this file
- * knowing anything about the section's state.
- *
- * Server components. No hooks, no client bundle: they ship as markup.
+ * Server components — no hooks, no client bundle.
  */
 
 const S = {

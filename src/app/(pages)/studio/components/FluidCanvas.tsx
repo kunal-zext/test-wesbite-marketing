@@ -4,11 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useFluid } from "../runtime/useFluid";
 
 /**
- * Thin client wrapper so the hero section itself can stay a server component.
- *
- * The colour is read off the `.zx` root rather than passed down as a prop, so
- * the hero section itself ships no client JS and the shader stays in step with
- * the CSS token.
+ * Thin client wrapper, so the hero itself stays a server component. The colour
+ * is read off the `.zx` root rather than passed as a prop, keeping the shader
+ * in step with the CSS token.
  */
 export default function FluidCanvas() {
   const ref = useRef<HTMLCanvasElement>(null);

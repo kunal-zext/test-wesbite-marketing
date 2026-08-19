@@ -182,11 +182,9 @@ export function useFluid(
       };
 
       /*
-       * ResizeObserver on the canvas, not a window resize listener: it reports
-       * the settled post-layout size, and it also catches size changes that come
-       * from the layout rather than the window — which a resize listener misses
-       * entirely. The old code ran once before layout had settled and left the
-       * buffer at 1351x741 while the element displayed at 1351x767.
+       * ResizeObserver on the canvas, not a window listener: it reports the
+       * settled post-layout size and catches changes that come from the layout
+       * rather than the window, which a resize listener misses.
        */
       const ro = new ResizeObserver(applySize);
       ro.observe(canvas);

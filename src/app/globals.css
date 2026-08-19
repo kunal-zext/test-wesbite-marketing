@@ -54,6 +54,12 @@ button {
   --color-admin-danger: #ef4444;
 }
 
+:root {
+  --color-primary-rgb: 140 82 255; /* #8c52ff */
+  --color-secondary-rgb: 143 224 255; /* #8fe0ff */
+  --color-tertiary-rgb: 26 35 72; /* #1a2348 */
+}
+
 /* Admin scrollbar */
 .admin-scroll::-webkit-scrollbar {
   width: 8px;

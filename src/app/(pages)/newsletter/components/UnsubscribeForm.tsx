@@ -155,7 +155,7 @@ export default function UnsubscribeForm({
                     id="unsub-other-detail"
                     name="otherDetail"
                     rows={3}
-                    placeholder="A sentence or two is enough. We read these."
+                    placeholder="A sentence or two is enough—we read these."
                     value={otherDetail}
                     onChange={(e) => onOtherDetailChange(e.target.value)}
                     disabled={isLoading}

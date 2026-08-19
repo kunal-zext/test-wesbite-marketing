@@ -62,28 +62,20 @@ export default function StudioPage() {
     >
       <StudioShell>
         {/*
-         * The running order is the argument, and it runs in one direction:
+         * The running order, and the numbers each section head prints:
          *
-         *      Hero      the promise, and the ask
-         *   01 Manifesto why us — its sentence breaks off mid-clause
-         *      Nerve     the glass answers it. These two are one beat; keep
-         *                them adjacent or the sentence never completes.
+         *      Hero      promise, and the ask
+         *   01 Manifesto its sentence breaks off mid-clause
+         *      Nerve     the glass completes it — keep these two adjacent
          *   02 Services  what we sell
          *   03 Pillars   what a good website has to do
-         *   04 Process   how we get there            ← moved up from 8th
-         *   05 Build     what that process hands you ← answers 03 and 04
-         *      Work      renders nothing while WORK is empty, which is how it
-         *                ships: there is no publishable work yet. Adding
-         *                entries makes it 06 and pushes the three below down.
+         *   04 Process   how we get there
+         *   05 Build     what the process hands you
+         *      Work      hidden while WORK is empty; filling it makes this 06
+         *                and pushes the three below down one
          *   06 Stats     proof in numbers
-         *   07 FAQ       the objections that remain
-         *   08 Contact   the ask again, now earned
-         *
-         * Process used to sit eighth, after all the proof, even though the
-         * hero opens by promising it ("Send a brief. The first call starts the
-         * build."). Stats used to sit fifth, asking the reader to take numbers
-         * on trust before anything had been demonstrated. Swapping them lets
-         * evidence follow the claim it supports instead of preceding it.
+         *   07 FAQ       remaining objections
+         *   08 Contact   the ask, now earned
          */}
         <Hero />
         <Manifesto />

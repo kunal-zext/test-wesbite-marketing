@@ -71,15 +71,9 @@ export function Hero() {
             <span className="zx-h1line" data-h="h1line" key={i}>
               {line.map((part, j) =>
                 "em" in part && part.em ? (
-                  /*
-                   * Flat accent, not the site's gradient utility: the headline
-                   * is split per character and each glyph gets its own
-                   * transform for the reveal and idle drift. A transformed
-                   * child is its own rendering context, so an ancestor's
-                   * background-clip:text cannot clip through it — the gradient
-                   * would paint nothing and the letters would render
-                   * transparent.
-                   */
+                  /* Flat accent, not the gradient utility: each glyph is
+                     transformed for the reveal, and a transformed child breaks
+                     an ancestor's background-clip:text. */
                   <em key={j}>{part.text}</em>
                 ) : (
                   <span key={j}>{part.text}</span>
@@ -180,11 +174,14 @@ export function Manifesto() {
           after someone lands, when they stop, lean in, and decide
           you&rsquo;re serious.
         </p>
+        {/* Ends suspended, not truncated: the ellipsis is the cue that the
+            sentence continues, and the shattering wall two sections down
+            supplies its missing noun. Keep the two in step. */}
         <p className="zx-manitail" data-r="up">
           Everything else is logistics. Most sites are designed by committee,
           approved by consensus, and forgotten by lunch. Ours get built by five
-          people in one room with one opinion, and they get shipped with something
-          no competitor has the
+          people in one room with one opinion, and they get shipped with
+          something no competitor has the&hellip;
         </p>
       </div>
     </section>
@@ -194,26 +191,15 @@ export function Manifesto() {
 /*
  * The wall, tiled into shards.
  *
- * A crack drawn over a solid panel reads as a scratch — glass breaks into
- * pieces, so the surface has to *be* pieces from the start. These tile the
- * panel exactly (neighbours share vertices), so at rest they are seamless and
- * the wall looks whole; the break is the shards moving apart and their edges
- * darkening.
+ * The surface *is* pieces from the start: panes tile the panel exactly
+ * (neighbours share vertices), so at rest it looks whole and the break is
+ * simply the panes moving apart. Radials out from the impact crossed by
+ * concentric rings, every angle and radius jittered so no two match. Seeded,
+ * not random — this is a server component, so the geometry ships as markup.
  *
- * The pattern is the one real glass makes: radials out from the impact,
- * crossed by roughly concentric rings, with every angle and radius jittered so
- * no two panes match. Seeded rather than random — this is a server component,
- * so the geometry ships as markup and Math.random would re-break the wall on
- * every build.
- */
-/*
- * Twenty spokes across eight bands — 160 panes. The count is what makes these
- * read as particles rather than slabs: at half this, the outer ring alone was
- * wide enough that a single flying piece covered most of the screen.
- *
- * The bands also stop at 640 rather than running out to 780. The furthest
- * corner of the viewBox is 588 from the centre, so anything past that is a
- * gigantic pane covering ground that was never visible.
+ * 20 spokes x 8 bands = 160 panes; fewer and a single flying piece covers
+ * most of the screen. Bands stop at 640 because the viewBox's furthest
+ * corner is 588 from the centre.
  */
 const SECTORS = 20;
 const RINGS = [0, 45, 95, 155, 225, 305, 395, 500, 640];
@@ -221,12 +207,9 @@ const RINGS = [0, 45, 95, 155, 225, 305, 395, 500, 640];
 /*
  * Sutherland–Hodgman, clipping a pane to the panel rectangle.
  *
- * A radial tessellation has to overshoot the corners of the rectangle it
- * covers, so the outer panes always stuck out past the panel. An `overflow`
- * clip hid that, but a clip is exactly what these must not have — they are
- * supposed to fly off the screen. Cutting the geometry instead gives panes that
- * end flush with the panel edge, like glass in a frame, and leaves nothing to
- * clip at all.
+ * A radial tessellation overshoots the corners it covers. Cutting the geometry
+ * leaves panes flush with the panel edge, so the group needs no `overflow`
+ * clip — which it must not have, since the panes fly off screen.
  */
 type Pt = [number, number];
 function clipToPanel(pts: Pt[], x1: number, y1: number): Pt[] {
@@ -317,12 +300,8 @@ export function Nerve() {
     <section className="zx-nerve" data-h="nerve">
       {/* The wall the letters land on, and break. */}
       <div className="zx-nervewall" data-h="nervewall">
-        {/*
-         * The panes are the wall's surface, not an overlay on it — the element
-         * behind them is dark, so every pane that shifts opens a real gap.
-         * Split into five sets, one per letter, interleaved around the circle
-         * so the damage spreads across the whole pane rather than sweeping it.
-         */}
+        {/* Five sets interleaved around the circle, so the break spreads
+            across the whole pane rather than sweeping it. */}
         <svg
           className="zx-shatter"
           viewBox="0 0 1000 620"
@@ -342,17 +321,9 @@ export function Nerve() {
             Nerve
           </div>
         </div>
-        {/* Rides on the glass, so it goes when the glass does. A question the
-            break answers: the manifesto above ends "…no competitor has the",
-            the glass asks what was missing, and the word behind is both the
-            answer and the end of that sentence. */}
-        {/*
-          * Instrument furniture on the pane — corner brackets, an impact
-          * crosshair and two mono labels. The panel was a bare slab with a
-          * sentence on it; the page already speaks in registration marks and
-          * hairlines, so the glass reads as a specimen under test. Every piece
-          * carries data-h="glassbit" and leaves on the same wave the panes do.
-          */}
+        {/* Instrument furniture — brackets, crosshair, mono labels — so the
+            pane reads as a specimen under test. Every piece is data-h
+            "glassbit" and leaves on the same wave as the panes. */}
         <div className="zx-glassui" aria-hidden="true">
           <span className="zx-gcorner zx-gcorner--tl" data-h="glassbit" />
           <span className="zx-gcorner zx-gcorner--tr" data-h="glassbit" />
@@ -377,10 +348,8 @@ export function Nerve() {
         </div>
       </div>
       <div className="zx-nervedefwrap">
-        {/* Reads as the rest of the dictionary entry, so it does not repeat the
-            headword the shatter just uncovered. Driven by that shatter rather
-            than the page's generic reveal, so it arrives with the word it
-            defines instead of ahead of it. */}
+        {/* The rest of the dictionary entry. Driven by the shatter, not the
+            generic reveal, so it arrives with the word it defines. */}
         <div className="zx-nervedef" data-h="nervedef">
           noun: the thing your last agency didn&rsquo;t have
         </div>
@@ -395,23 +364,17 @@ export function Services() {
       <div className="zx-inner">
         <SectionHead num="02" title="What we do" aside="Build it. Rank it. Fix it." />
         <div className="zx-svcwrap">
+          {/* Statements, not links — there are no per-service pages. The wipe
+              is emphasis only; add a cursor label, data-mag or an arrow here
+              only once these have an href. */}
           {SERVICES.map((s) => (
-            <div
-              className="zx-svc"
-              key={s.num}
-              data-h="svc"
-              data-mag="1"
-              data-label="open"
-            >
+            <div className="zx-svc" key={s.num} data-h="svc">
               <div className="zx-svcfill" data-h="svcfill" aria-hidden="true" />
               <div className="zx-svcrow" data-h="svcrow">
                 <span className="zx-svcnum">{s.num}</span>
                 <span className="zx-svcname">{s.name}</span>
                 <span className="zx-svcdesc" data-h="svcdesc">
                   {s.desc}
-                </span>
-                <span className="zx-svcarrow" aria-hidden="true">
-                  ↗
                 </span>
               </div>
             </div>
@@ -422,28 +385,17 @@ export function Services() {
   );
 }
 
-/**
- * The metrics tape.
+/*
+ * The metrics tape. Scroll slides it so each value takes the centre in turn:
+ * the centred one fills solid, its neighbours stand as hollow outlines.
  *
- * No panel, no photographs, no illustration: the numbers are the section, set
- * at the same display scale as the page's other signature moments and run as a
- * single horizontal tape. Scroll slides the tape so each value takes the centre
- * of the viewport in turn; the centred value fills in solid accent while its
- * neighbours stand as hollow outlines either side, so the reader always sees
- * where they are in the run without a single piece of chrome.
- *
- * The values are aria-hidden as a group — they are a visual instrument — and
- * each copy slot carries the figure in a visually-hidden span instead, so a
- * screen reader hears "41 — Flagship builds" exactly once.
+ * The tape is aria-hidden as a visual instrument; each copy slot repeats the
+ * figure in a visually-hidden span, so a screen reader hears it once.
  */
-/**
- * What makes a website work: four claims as a deck the reader throws.
- *
- * The section pins and each card owns a 1/N slice of the pin: it waits in the
- * deck, then flings itself up and off the screen through its slice, and the
- * ones behind promote forward as it goes. Server-rendered — the deck is a
- * plain grid of cards until useMotion stacks it, so the copy is complete and
- * readable with no JavaScript and under reduced motion.
+/*
+ * Four claims as a deck the reader throws. The section pins; each card owns a
+ * 1/N slice of it, flinging itself off screen while the ones behind promote
+ * forward. A plain grid until useMotion stacks it, so it reads with no JS.
  */
 export function Pillar() {
   return (
@@ -487,24 +439,15 @@ export function Pillar() {
   );
 }
 
-/**
- * What you get.
+/*
+ * What you get. Six plates fly in from alternating sides and slam into a
+ * stack as the reader scrolls — the claim made physically.
  *
- * The section builds. Six slabs fly in from alternating sides and slam into a
- * stack as the reader scrolls, and by the time they leave, the stack is
- * complete — which is the claim the copy is making, made physically.
+ * Sits after the process and answers it: those are the steps, this is what
+ * they hand you. Keep it to deliverables; restating the pillars above makes
+ * two consecutive sections say the same thing.
  *
- * It sits directly after the process because it answers it: those are the five
- * steps, and this is what the five steps hand you. It deliberately no longer
- * restates the four pillars — that made two consecutive sections say the same
- * thing and read as a stutter rather than as a second beat.
- *
- * Stacking is the one verb this page had left: the deck throws, the tape
- * slides, the aeroplane assembles in the air, the robot sweeps. Nothing yet
- * had put things down on top of each other.
- *
- * Server-rendered as a plain list of slabs, so with no JavaScript — or under
- * reduced motion — the stack is simply already built.
+ * A plain list of plates with no JS, so the stack is simply already built.
  */
 export function Build() {
   return (
@@ -519,9 +462,7 @@ export function Build() {
         <p className="zx-bldlede">
           Every engagement hands over the same six things.
         </p>
-        {/* Ties this section to the one above it: those were the steps, these
-            are what the steps produce. Without it the stack reads as a fresh
-            list rather than as the answer to the process. */}
+        {/* Hands the reader over from the process section. */}
         <p className="zx-bldsub">
           Whatever the brief, those five steps end in the same handover. Fixed
           scope, nothing itemised back to you later.
@@ -529,15 +470,9 @@ export function Build() {
 
         <div className="zx-bldstack" data-h="bldstack">
           {INCLUDED.map((item, i) => (
-            /*
-             * The bay: the recess this plate lands in, holding a ghosted copy
-             * of the row it is waiting for. The whole list is therefore
-             * legible from the moment the section pins — the reader is never
-             * looking at a blank panel, and each plate arriving reads as its
-             * line being made solid rather than as a card appearing from
-             * nowhere. The ghost is decorative; the plate carries the real
-             * text, so nothing here is announced twice.
-             */
+            /* The bay is the recess the plate lands in; its ghost keeps the
+               row legible before the plate arrives. The ghost is decorative —
+               the plate carries the real text. */
             <div className="zx-bldbay" data-h="bldbay" key={item.title}>
               <span className="zx-bldghost" aria-hidden="true">
                 <span className="zx-bldnum">
@@ -632,14 +567,9 @@ export function Signal() {
       <div className="zx-sigpin" data-h="sigpin">
         <div className="zx-sigglow" data-h="sigglow" aria-hidden="true" />
 
-        {/*
-         * The wheel. Its centre sits off-canvas to the left, so only the right
-         * arc is on screen. Each spoke is a zero-height arm from the centre out
-         * to the rim, fixed at its own angle; the container is what rotates, so
-         * every number inherits the turn and reads as tilted. Whichever number
-         * reaches the marker is upright simply because its spoke angle and the
-         * wheel angle cancel there — no counter-rotation involved.
-         */}
+        {/* The wheel, centred off-canvas so only its right arc shows. Spokes
+            are zero-height arms fixed at their own angle; the container turns,
+            so a number is upright exactly where its angle cancels the wheel's. */}
         <div className="zx-wheel" aria-hidden="true">
           <div className="zx-wheelarc" />
           <div className="zx-wheelspin" data-h="wheel">
@@ -650,10 +580,8 @@ export function Signal() {
                 style={{ "--a": `${i * 30}deg` } as React.CSSProperties}
               >
                 <span className="zx-spokenum" data-h="spokenum">
-                  {/* The glyph turns independently of its box. Where the arc
-                      moves to the top of the section the whole wheel is offset
-                      a quarter turn, and the digits have to come back upright
-                      without taking the marker dot off the rim with them. */}
+                  {/* Turns independently of its box, so the digits can come
+                      back upright without moving the marker dot off the rim. */}
                   <span className="zx-spokedigit">
                     {String(i + 1).padStart(2, "0")}
                   </span>
@@ -700,23 +628,12 @@ export function Signal() {
   );
 }
 
-/**
- * Selected work.
+/*
+ * Selected work: evidence, placed between the deliverables and the metrics so
+ * the argument runs claim → method → deliverable → evidence → measurement.
  *
- * The page claimed 41 flagship builds and showed none of them: a studio that
- * sells websites never displayed a website it had made, which is the largest
- * hole the running order had. It sits after the deliverables and before the
- * metrics, so the argument runs claim → method → deliverable → evidence →
- * measurement rather than asking the reader to take the numbers on trust.
- *
- * Renders nothing at all when WORK is empty, which is how it currently ships —
- * there is no publishable work yet. An empty section is honest; a section of
- * invented case studies is not, so the page would rather have a shorter
- * running order than a fabricated one.
- *
- * Adding entries to WORK brings this back at position 06, which means By the
- * numbers, Straight answers and the contact form all shift down one — they are
- * numbered 06, 07 and 08 while this is hidden.
+ * Renders nothing while WORK is empty, which is how it ships. Filling WORK
+ * brings it back at 06 and shifts Stats, FAQ and Contact down one.
  */
 export function Work() {
   if (!WORK.length) return null;
@@ -742,17 +659,13 @@ export function FaqSection() {
   return (
     <section className="zx-sec" id="faq">
       <div className="zx-faqgrid">
-        {/* Head and lede are one block: the grid's gap is sized to separate
-            the title block from the accordion, which is far too much air
-            between a heading and the line that belongs to it. */}
+        {/* One block, so the grid's gap separates it from the accordion
+            rather than the heading from its own lede. */}
         <div className="zx-faqhead">
           <SectionHead num="07" title="Questions" />
           <p className="zx-faqlede">Things people ask us.</p>
-          {/*
-           * The column would otherwise be a heading above a large empty space,
-           * and this is the last thing before the form: a reader whose question
-           * is not on the list needs somewhere to go other than back up.
-           */}
+          {/* The last thing before the form — somewhere to go for a reader
+              whose question is not on the list. */}
           <p className="zx-faqask">
             Not the one you had in mind? Send a brief and we will answer it on
             the first call.
@@ -781,14 +694,9 @@ export function Contact() {
 export function Footer() {
   return (
     <footer className="zx-foot" data-h="foot">
-      {/*
-       * A rounded island rather than a full-bleed strip, with the hero's fluid
-       * filling it edge to edge behind a legibility veil. The page opens on
-       * that shader and closes on it — a bookend, not a fade to flat black.
-       * The loop gates on an IntersectionObserver, so this second instance
-       * costs nothing until the footer is on screen, by which point the
-       * hero's has gone idle.
-       */}
+      {/* A rounded island carrying the hero's shader behind a legibility
+          veil, so the page closes on what it opened with. The loop gates on
+          an IntersectionObserver, so this second canvas idles until seen. */}
       <div className="zx-footpanel">
         <div className="zx-footfluid" aria-hidden="true">
           <FluidCanvas />
@@ -827,8 +735,7 @@ export function Footer() {
           </div>
         </div>
 
-        {/* One hairline strip instead of three columns of sitemap — the finale
-            belongs to the statement and the wordmark. */}
+        {/* One hairline strip; see .zx-footnav. */}
         <div className="zx-footnav">
           <nav className="zx-fnavgroup" aria-label="Footer">
             {FOOTER_LINKS.studio.map((l) => (
@@ -837,13 +744,20 @@ export function Footer() {
               </a>
             ))}
           </nav>
-          <div className="zx-fnavgroup">
+          {/* Offsite: noreferrer as well as noopener. */}
+          <nav className="zx-fnavgroup" aria-label="Elsewhere">
             {FOOTER_LINKS.elsewhere.map((l) => (
-              <a className="zx-fnavlink" href={l.href} key={l.label}>
+              <a
+                className="zx-fnavlink"
+                href={l.href}
+                key={l.label}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {l.label}
               </a>
             ))}
-          </div>
+          </nav>
           <div className="zx-fnavgroup zx-fnavmeta">
             <span>{CONTACT.address[0]}</span>
             <span className="zx-footclock" data-h="clock" data-suffix="IST">

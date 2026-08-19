@@ -1,17 +1,13 @@
 /**
- * Assembly state for the section 04 aeroplane, shared between the scroll layer
- * that computes it and the WebGL scene that draws it.
+ * Assembly state for the aeroplane, shared between the scroll layer that
+ * computes it and the WebGL scene that draws it.
  *
  *   k    1 = parts scattered, 0 = aircraft whole
  *   fly  0 = holding, 1 = fully departed
  *
- * On `window` for the same reason as the pointer store: the writer (StudioShell
- * via useMotion) and the reader (the Plane canvas) are separate "use client"
- * entry points, and a module-level binding shared across two client boundaries
- * can be bundled into both chunks — leaving each side with its own copy.
- *
- * Not React state: these change every frame, and a render per frame to move a
- * mesh would be absurd.
+ * On `window`, not a module binding: writer and reader are separate "use
+ * client" entry points, and a shared module can be bundled into both chunks,
+ * leaving each with its own copy. Not React state — these change every frame.
  */
 
 const KEY = "__zxAssembly";

@@ -5,14 +5,14 @@ import UnsubscribePageClient from "./UnsubscribePageClient";
 export const metadata: Metadata = {
   title: "Newsletter Unsubscribe | Zext Digital",
   description:
-    "Unsubscribe from Zext Digital marketing emails. Tell us why you're leaving. We read every response.",
+    "Unsubscribe from Zext Digital marketing emails. Tell us why you're leaving—we read every response.",
   alternates: {
     canonical: "/newsletter/unsubscribe",
   },
   openGraph: {
     title: "Newsletter Unsubscribe | Zext Digital",
     description:
-      "Unsubscribe from Zext Digital marketing emails. Tell us why you're leaving. We read every response.",
+      "Unsubscribe from Zext Digital marketing emails. Tell us why you're leaving—we read every response.",
     type: "website",
     locale: "en_IN",
     siteName: "Zext Digital",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   twitter: {
     title: "Newsletter Unsubscribe | Zext Digital",
     description:
-      "Unsubscribe from Zext Digital marketing emails. Tell us why you're leaving. We read every response.",
+      "Unsubscribe from Zext Digital marketing emails. Tell us why you're leaving—we read every response.",
     images: [
       {
         url: "/assets/Logo.png",

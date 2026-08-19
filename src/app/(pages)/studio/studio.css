@@ -1,66 +1,63 @@
 /*
  * Zext Digital — Studio landing page.
- * Ported 1:1 from the bundled design artifact, whose every rule lived in an
- * inline `style` attribute. Hoisting them into a scoped sheet keeps the served
- * HTML small, restores real :hover/:focus states (the artifact faked those with
- * a non-standard `style-hover` attribute) and lets the browser cache the CSS.
  *
- * Everything is namespaced under .zx so this page cannot leak into the rest of
- * the site, which runs a light theme on Tailwind tokens.
+ * The one page written as a stylesheet rather than Tailwind utilities. About a
+ * fifth of these rules have no utility equivalent — keyframes, multi-layer
+ * shadows, -webkit-text-stroke, and the custom properties the motion layer
+ * writes each frame — and they sit on the same elements as the ordinary
+ * padding and grid, so the page commits to one system rather than splitting
+ * components across two.
+ *
+ * Namespaced under .zx; nothing leaks either way.
+ *
+ * Two conventions keep it in step with the rest of the codebase:
+ *
+ *   Colour  never hard-code a brand hex. Alias it from @theme in globals.css,
+ *           as the tokens below do.
+ *   Width   media queries use Tailwind's stops — 639.98/767.98/1023.98 max,
+ *           768/1024/1280 min. The two exceptions are marked in place.
  */
 
 .zx {
   --bg: #0a0a0b;
   --bg2: #0f0f11;
-  /*
-   * Text colours taken from the marketing site rather than invented here: it
-   * runs pure white on dark sections with body copy at white/55 and hairlines
-   * at white/10. The old warm off-white and warm grey were the single biggest
-   * reason the two pages read as different type systems.
-   */
+  /* Matches the marketing site's dark sections: white ink, body at white/55,
+     hairlines at white/10. */
   --ink: #ffffff;
   --dim: rgba(255, 255, 255, 0.55);
   --line: rgba(255, 255, 255, 0.1);
 
   /*
-   * Palette follows the roles the rest of the site already uses:
+   * Aliased from @theme in globals.css — never restate a brand hex here, or a
+   * change there silently skips this page.
    *
-   *   --acc      flat accent for small type, rules, rings and progress bars.
-   *              Cyan, because that is what the marketing site actually uses:
-   *              text-secondary carries every eyebrow, number, dot and icon
-   *              shell there — 57 call sites — while purple appears as text
-   *              exactly twice. This page had the relationship inverted.
-   *              13.8:1 on the page background.
-   *   --acc-fill loud accent fills (service-row wipe, selected chip, text
-   *              selection). The same cyan as --acc, so a filled surface and
-   *              the accent type on the page are one colour rather than two.
-   *              It is a light fill, so its label is near-black, not white:
-   *              white on this cyan is 1.47:1 and unreadable, while the ink
-   *              below sits at 13.4:1.
-   *   --onacc    the label colour that goes on --acc-fill. Always change the
-   *              two together; every call site pairs them.
-   *   --brand    brand primary. Glows and button rings — the same job it has
-   *              on the marketing site, which never sets it as a text colour.
-   *   --surface  brand tertiary (`bg-tertiary`). The button surface, matching
-   *              the home page CTA.
+   *   --acc      flat accent: small type, rules, rings, bars. 13.8:1 on --bg.
+   *              The hero and footer shaders read this at runtime.
+   *   --acc-fill loud fills: service wipe, selected chip, ::selection. A light
+   *              fill, so its label is near-black.
+   *   --onacc    the label on --acc-fill. Change the two together — white on
+   *              this cyan is 1.47:1, the ink below is 13.4:1.
+   *   --brand    brand primary. Glows and button rings only, never text.
+   *   --surface  brand tertiary. Button surface, matching the home page CTA.
    *
-   * Large emphasis words don't use any of these — they reuse the site's own
-   * .hero-title-gradient-animated class, the same treatment as the home page
-   * headline, so the two pages animate identically.
-   *
-   * The WebGL fluid in the hero and the footer reads --acc off this element at
-   * runtime, so the shader is lit in the same cyan as the accent type.
+   * Large emphasis words use the site's .hero-title-gradient-animated instead.
    */
-  --acc: #8fe0ff;
-  --acc-rgb: 143 224 255;
-  --acc-fill: #8fe0ff;
+  --acc: var(--color-secondary);
+  --acc-rgb: var(--color-secondary-rgb);
+  --acc-fill: var(--color-secondary);
   --onacc: #07080c;
-  --brand: #8c52ff;
-  --brand-rgb: 140 82 255;
-  --surface: #1a2348;
-  --surface-rgb: 26 35 72;
-  /* The button outline, matching the ring on the site's Book Consultation CTA. */
-  --ring: linear-gradient(100deg, #b8a9ff 0%, #8c52ff 45%, #6a7cff 100%);
+  --brand: var(--color-primary);
+  --brand-rgb: var(--color-primary-rgb);
+  --surface: var(--color-tertiary);
+  --surface-rgb: var(--color-tertiary-rgb);
+  /* The button outline, matching the ring on the site's Book Consultation CTA.
+   * The two outer stops are ramp colours with no token of their own. */
+  --ring: linear-gradient(
+    100deg,
+    #b8a9ff 0%,
+    var(--color-primary) 45%,
+    #6a7cff 100%
+  );
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --pad: clamp(16px, 4vw, 44px);
   --wide: 1780px;
@@ -97,7 +94,7 @@
 /*
  * Zero-specificity reset (:where contributes none), so any component rule below
  * can set its own colour. Written as `.zx button` this would outrank single-class
- * selectors like .zx-fnext and silently win the colour cascade.
+ * selectors like .zx-fnav and silently win the colour cascade.
  */
 :where(.zx) :where(input, button) {
   font: inherit;
@@ -108,16 +105,6 @@
 }
 
 /* Shared type ramps -------------------------------------------------- */
-.zx-mono {
-  font-family: var(--font-grotesk), sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-.zx-display {
-  font-family: var(--font-grotesk), sans-serif;
-  text-transform: uppercase;
-}
 .zx-serif {
   font-family: var(--font-instrument), serif;
   font-style: italic;
@@ -271,14 +258,10 @@
 
 /* Preloader ---------------------------------------------------------- */
 /*
- * A greeting in a different language every beat, then the whole panel leaves
- * upward behind a curved trailing edge.
- *
- * The curve is a pseudo-element sitting directly beneath the panel rather than
- * a border-radius on the panel itself: while it is up the panel has to cover
- * the viewport squarely, and only the edge it departs on should be round. The
- * overflow on the wrapper keeps that shape hidden until the panel starts to
- * move.
+ * A greeting per beat, then the panel leaves upward behind a curved trailing
+ * edge. The curve is a pseudo-element beneath the panel, not a border-radius
+ * on it — the panel must cover the viewport squarely while it is up, and only
+ * its departing edge should round. The wrapper's overflow hides it until then.
  */
 .zx-pre {
   position: fixed;
@@ -412,6 +395,8 @@
  * more valuable of the two, so it comes back first and the links follow once
  * there is room for all four without crowding the mark.
  */
+/* Breakpoint exception: below Tailwind's smallest stop. The CTA is hidden only
+   on the very narrowest phones, where 640px would take it off far too much. */
 @media (min-width: 360px) {
   .zx-nav .zx-navcta {
     display: inline-flex;
@@ -457,13 +442,8 @@
 }
 .zx-heroinner {
   position: relative;
-  /*
-   * Budget the nav explicitly, then add the breathing room on top. Written as a
-   * plain padding it is measured from the top of the hero, which the nav covers
-   * the first 74px of — so on a laptop the padding resolved to 92px and left
-   * only 18px of actual clearance, while a large screen got 77px. This controls
-   * the clearance itself, so it stays honest at every height.
-   */
+  /* Budget the nav explicitly, then add breathing room on top: a plain padding
+     is measured from the hero's top, the first 74px of which the nav covers. */
   padding: calc(var(--navh) + clamp(26px, min(7vh, 6vw), 88px)) var(--pad)
     clamp(20px, min(4.5vw, 4vh), 52px);
   width: 100%;
@@ -471,14 +451,11 @@
   margin: 0 auto;
 }
 /*
- * The hero is bottom-aligned inside 100vh, which reads well on a wide screen
- * where the display type nearly fills it. On a portrait tablet or phone the
- * content only covers about half the viewport and the rest opens up as dead
- * space above the eyebrow. Auto margins take precedence over the parent's
- * justify-content, so this recentres the block in the room above the ticker
- * without touching the desktop composition.
+ * The hero is bottom-aligned in 100vh, which suits a wide screen. In portrait
+ * the content covers about half the viewport, so auto margins — which outrank
+ * the parent's justify-content — recentre it without touching desktop.
  */
-@media (max-width: 1000px) {
+@media (max-width: 1023.98px) {
   .zx-heroinner {
     margin-top: auto;
     margin-bottom: auto;
@@ -511,15 +488,9 @@
   font-family: var(--font-grotesk), sans-serif;
   font-weight: 700;
   /*
-   * Sized off width alone, as the source design did — the headline is the point
-   * of the hero, so it keeps its full scale on a short screen and the lede and
-   * buttons are allowed to fall below the fold rather than shrink the type to
-   * accommodate them.
-   *
-   * The inner clamp is a floor for small screens: under ~440px the width term
-   * collapses the display type to something that no longer reads as a headline,
-   * so a width-derived minimum takes over, capped where the longest line starts
-   * to run out of room on a narrow phone.
+   * Width alone: the headline keeps full scale on a short screen and the lede
+   * may fall below the fold rather than shrink the type. The inner clamp is a
+   * floor — under ~440px the width term stops reading as a headline.
    */
   font-size: clamp(clamp(46px, 12.5vw, 56px), 10.4vw, 190px);
   line-height: 0.86;
@@ -588,13 +559,10 @@
 /*
  * Buttons -------------------------------------------------------------
  *
- * Primary is a solid brand-purple pill that lifts on hover; secondary is a
- * hairline that fills purple from below. That fill-from-below is the same
- * gesture the five service rows use further down the page, so the two read as
- * one system rather than two borrowed styles.
- *
- * The label sits in the page's own Space Grotesk scale, and the sweep is a
- * ::before behind it — both are GPU transforms, nothing reflows on hover.
+ * Primary is a solid pill that lifts on hover; secondary is a hairline that
+ * fills from below — the same gesture the service rows use, so the two read as
+ * one system. The sweep is a ::before behind the label; both are GPU
+ * transforms, so nothing reflows on hover.
  */
 .zx-btn {
   position: relative;
@@ -788,6 +756,9 @@
  * the button row wraps under the copy and grows upward into the hint, which
  * put "SCROLL" straight through the secondary button.
  */
+/* Breakpoint exception: compound with a height test, which Tailwind's width
+   scale cannot express. The hint only earns its place when the viewport is
+   both wide and tall enough that the hero is not already filling it. */
 @media (min-width: 1150px) and (min-height: 761px) {
   .zx-scrollhint {
     display: flex;
@@ -832,7 +803,7 @@
  * both end up wrapping mid-phrase. Drop the aside to its own full-width line
  * instead. Heads without an aside end on the rule, which the :not() skips.
  */
-@media (max-width: 720px) {
+@media (max-width: 767.98px) {
   .zx-shead {
     flex-wrap: wrap;
     row-gap: 10px;
@@ -868,11 +839,9 @@
   text-wrap: pretty;
 }
 /*
- * Unclipped, and lifted above its neighbours. The pieces are meant to leave the
- * screen, so every box between them and the viewport edge has to let them
- * through — clipping here stopped them at the section boundary. The raised
- * z-index is what lets them cross the sections above and below on the way out;
- * at the shared z-index 2 the next section simply painted over them.
+ * Unclipped and lifted above its neighbours: the panes leave the screen, so
+ * every box between them and the viewport edge must let them through, and the
+ * raised z-index lets them cross the sections either side on the way out.
  */
 .zx-nerve {
   position: relative;
@@ -1009,12 +978,11 @@
   height: 1px;
 }
 /*
- * None of it below this width. The panel is about 146px tall on a phone, which
- * is not enough for corner marks, two labels, a crosshair and two lines of type
- * — measured, the label lands 16px inside the text. The sentence recentres too,
- * since the lift only exists to clear a crosshair that is no longer there.
+ * Dropped below this width: at about 146px tall the panel cannot hold corner
+ * marks, two labels, a crosshair and two lines of type without overlap. The
+ * sentence recentres, since its lift only existed to clear the crosshair.
  */
-@media (max-width: 760px) {
+@media (max-width: 767.98px) {
   .zx-glassui {
     display: none;
   }
@@ -1045,32 +1013,15 @@
   transform: scaleX(-1);
 }
 /*
- * The wall. Paper stock rather than another dark panel, so the letters have
- * something that can visibly break — a fracture drawn on the page background
- * is a line, a fracture across a light surface is damage. Same stock as the
- * testimonial cards, so the two light moments on the page belong together.
- *
- * It clips, so a letter still on its way in is a shape entering the frame
- * rather than one floating over the section.
- */
-/*
- * Not clipped, and square-cornered because of it. The pieces have to leave, and
- * a clip here stopped them dead at the panel edge — they vanished about a
- * centimetre into a flight that is supposed to carry them off the section. The
- * section itself still clips, which is the boundary that should catch them.
- * (With no clip a radius would show square pane corners over rounded backing.)
+ * Unclipped, and square-cornered because of it: the panes must fly clear, and
+ * the section is the boundary that should catch them. (With no clip, a radius
+ * would show square pane corners over rounded backing.)
  */
 .zx-nervewall {
   position: relative;
-  /*
-   * The layer under the glass, and what is left once it has gone. The accent
-   * the hero gives "brief".
-   *
-   * It has to differ from the panes or nothing reads as broken, and it has to
-   * carry the word once the panes have flown off — black on the accent is
-   * 6.7:1, where black on a dark backing would simply disappear the moment the
-   * glass cleared.
-   */
+  /* The layer under the glass, and what is left once it has gone. Must differ
+     from the panes or nothing reads as broken, and must carry the word once
+     they have flown off. */
   background: #060608;
   padding: clamp(38px, 5.4vw, 96px) 0 clamp(30px, 4.4vw, 76px);
   box-shadow: 0 30px 70px -26px rgba(0, 0, 0, 0.8);
@@ -1096,28 +1047,20 @@
   pointer-events: none;
 }
 /*
- * Seamless until it breaks. The panes tile on shared vertices, but a bare tiling
- * is not seamless on screen — two anti-aliased edges meeting on the same line
- * do not composite to full coverage, so the dark backing bleeds through as a
- * hairline along every join. The stroke is therefore always painted; at rest it
- * is the fill colour and covers those joins, and breaking only changes what
- * colour it is.
- */
-/*
- * The stroke lives on the set, not the pane: SVG inherits it, so one tween per
- * set drives ninety-six edges instead of ninety-six tweens on a scrubbed
- * timeline.
+ * Seamless until it breaks. Two anti-aliased edges on the same line do not
+ * composite to full coverage, so the backing bleeds through every join as a
+ * hairline. The stroke is therefore always painted — at rest it is the fill
+ * colour and hides the joins; breaking only changes its colour.
+ *
+ * It lives on the set, not the pane: SVG inherits it, so one tween drives
+ * ninety-six edges.
  */
 .zx-shardset {
   stroke: #16161c;
 }
 /*
- * Dark glass over a darker void, rather than paper. The fracture is carried by
- * the seams lighting up rather than by the panes contrasting with what is
- * behind them — which is also what makes the flying pieces visible against the
- * page, since a black shape on a black background is only its edges.
- *
- * Stroke matches the fill at rest for the seam reason above.
+ * Dark glass over a darker void. The fracture is carried by the seams lighting
+ * up, which is also what makes the flying pieces visible against the page.
  */
 .zx-shard {
   fill: #16161c;
@@ -1128,18 +1071,10 @@
   position: relative;
   z-index: 1;
   /*
-   * White, and deliberately the only display moment on the page that carries
-   * no accent colour. Cyan was tried here and read as branding: the word is
-   * the page's most aggressive assertion — "the thing your last agency didn't
-   * have" — and cyan softened exactly the word that should not be soft. The
-   * rest of the page is already cyan throughout, so this reads as contrast
-   * rather than as an oversight.
-   *
-   * The one thing cyan did better was the break itself: the sentence printed
-   * on the glass is white too, so mid-shatter the word coming through the hole
-   * is the same colour as the fragments flying off the surface. If that ever
-   * needs solving, tween this to cyan across the shatter and back to white as
-   * the panes clear, rather than repainting the resting state.
+   * The only display moment on the page carrying no accent colour — contrast,
+   * against a page that is cyan throughout. Note the glass sentence is white
+   * too, so mid-shatter the word and the flying fragments share a colour; if
+   * that needs separating, tween across the shatter rather than repainting.
    */
   color: #f3f3f0;
   font-family: var(--font-grotesk), sans-serif;
@@ -1162,14 +1097,11 @@
   color: var(--dim);
 }
 
-/* Services ----------------------------------------------------------- */
 /* Selected work ---------------------------------------------------------- */
 /*
- * Three plates, side by side, wearing the same machined face as the build
- * stack — this is evidence, so it should look like it came off the same line
- * as everything else the page has shown. No pinning and no scroll act: by this
- * point the reader has sat through four set pieces and what they want here is
- * to look at the work, not to operate another mechanism.
+ * Plates wearing the build stack's machined face, so the evidence looks like
+ * it came off the same line. No pin and no scroll act — five set pieces in,
+ * the reader wants to look at the work rather than operate it.
  */
 .zx-workgrid {
   display: grid;
@@ -1278,24 +1210,17 @@
   opacity: 0.72;
   text-wrap: pretty;
 }
-.zx-svcarrow {
-  font-size: 20px;
-  opacity: 0.5;
-}
-@media (min-width: 1081px) {
+@media (min-width: 1024px) {
   .zx-svcdesc {
     display: block;
   }
 }
 /*
- * Under 1081px the description used to be hidden outright. That was survivable
- * when these rows were one-word disciplines, but the copy now carries the offer
- * itself — price, timeline, what AEO and GEO actually mean — so hiding it left
- * phone and tablet visitors with three bare titles and no argument. It wraps to
- * its own line beneath the title instead, ordered last so the number, title and
- * arrow still share the first row.
+ * Narrow: the description wraps beneath the title rather than being hidden —
+ * it carries the offer itself, so hiding it leaves three bare titles and no
+ * argument. Ordered last, so the number and title keep the first row.
  */
-@media (max-width: 1080px) {
+@media (max-width: 1023.98px) {
   .zx-svcrow {
     flex-wrap: wrap;
     row-gap: clamp(8px, 1.4vw, 14px);
@@ -1321,10 +1246,9 @@
    * The dimmed parts of the row need lifting once the fill lands under them.
    * These opacities were set for pale text on a near-black page; the same
    * values over a light cyan fill wash the ink out to roughly 3.7:1, under the
-   * minimum for type this small. Raised, the index and arrow clear 7:1.
+   * minimum for type this small. Raised, the index clears 7:1.
    */
-  .zx-svc:hover .zx-svcnum,
-  .zx-svc:hover .zx-svcarrow {
+  .zx-svc:hover .zx-svcnum {
     opacity: 0.78;
   }
   .zx-svc:hover .zx-svcdesc {
@@ -1387,11 +1311,8 @@
   perspective: 1400px;
 }
 /*
- * The tray the deck sits in. The cards are thrown clear one by one, and the
- * last one leaves an empty box the height of the pin behind it; without a
- * tray that box is bare background, which reads as the section having broken
- * rather than having finished. The recess stays put, so the deck empties into
- * something instead of into nothing.
+ * The tray the deck sits in. It stays put as the cards are thrown clear, so
+ * the deck empties into something rather than into bare background.
  */
 .zx-pdeck[data-deck='1']::before {
   content: "";
@@ -1425,13 +1346,16 @@
   padding: clamp(28px, 4vw, 68px);
   border-radius: 26px;
   border: 1px solid rgba(255, 255, 255, 0.13);
-  background:
-    linear-gradient(
-      150deg,
-      rgb(var(--surface-rgb) / 0.96),
-      rgb(var(--surface-rgb) / 0.55) 62%,
-      var(--bg2)
-    );
+  /* Opaque, in two layers: the gradient does the lighting but composites over
+     a solid base, so a card thrown over the heading hides it rather than
+     letting two sets of type share the same pixels. */
+  background-color: var(--bg2);
+  background-image: linear-gradient(
+    150deg,
+    rgb(var(--surface-rgb) / 0.96),
+    rgb(var(--surface-rgb) / 0.55) 62%,
+    transparent
+  );
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
     0 40px 90px -40px rgb(0 0 0 / 0.95);
@@ -1469,7 +1393,7 @@
   color: var(--dim);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023.98px) {
   .zx-pdeck[data-deck='1'] {
     height: clamp(380px, 62vh, 520px);
   }
@@ -1752,17 +1676,12 @@
 
 /* In every build ------------------------------------------------------- */
 /*
- * The section builds. Six machined plates fly in from alternating sides and
- * slam into a stack as the reader scrolls; by the time they leave, the stack
- * is complete — the claim, made physically.
+ * Six machined plates slam into a stack as the reader scrolls. They wear the
+ * aeroplane's material — navy face lit from above-left, dark edge underneath
+ * for thickness, cyan rail along the leading edge — and sit almost touching,
+ * because a gapped row of rounded cards reads as a list.
  *
- * The plates wear the same material as the aeroplane and the gyroscope: navy
- * face lit from above-left, a dark edge underneath giving real thickness, a
- * cyan rail along the leading edge. They are set almost touching, because a
- * stack of plates touches — a gapped row of rounded cards reads as a list.
- *
- * Server-rendered as ordinary grid rows; the motion layer only transforms
- * them, so with no JavaScript the stack is simply already built.
+ * Ordinary grid rows; the motion layer only transforms them.
  */
 .zx-build {
   position: relative;
@@ -1770,6 +1689,12 @@
   background: var(--bg);
   border-top: 1px solid var(--line);
 }
+/*
+ * Height is the constraint, not width. While pinned this block is fixed to the
+ * top of the viewport, so anything past 100svh is unreachable. Every vertical
+ * measurement below is capped in svh as well as px, so the heading gives way
+ * before the last plate does. Widths stay in vw/ch.
+ */
 .zx-bldpin {
   width: 100%;
   max-width: var(--wide);
@@ -1778,17 +1703,18 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: calc(var(--navh) + clamp(24px, 4vh, 54px)) var(--pad)
-    clamp(24px, 4vh, 54px);
+  padding: calc(var(--navh) + clamp(16px, 3svh, 54px)) var(--pad)
+    clamp(16px, 3svh, 54px);
   /* Contains the plates while they are still off to the sides. */
   overflow: hidden;
 }
 .zx-bldlede {
-  margin: clamp(14px, 2vh, 22px) 0 clamp(10px, 1.4vh, 16px);
+  margin: clamp(8px, 1.6svh, 22px) 0 clamp(6px, 1.1svh, 16px);
   max-width: 44ch;
   font-family: var(--font-grotesk), sans-serif;
   font-weight: 700;
-  font-size: clamp(24px, 3.2vw, 50px);
+  /* Width sets the ambition, height sets the ceiling. */
+  font-size: min(clamp(24px, 3.2vw, 50px), 6.4svh);
   line-height: 1.06;
   letter-spacing: -0.035em;
   color: var(--ink);
@@ -1796,32 +1722,31 @@
 }
 /* The line that hands the reader over from the process section to this one. */
 .zx-bldsub {
-  margin: 0 0 clamp(24px, 3.6vh, 46px);
+  margin: 0 0 clamp(14px, 2.6svh, 46px);
   max-width: 62ch;
-  font-size: clamp(13px, 1.05vw, 16px);
-  line-height: 1.6;
+  font-size: min(clamp(13px, 1.05vw, 16px), 2.1svh);
+  line-height: 1.55;
   color: var(--dim);
 }
 /* Nearly touching: this is a stack, not a list. */
 .zx-bldstack {
   display: grid;
   gap: 5px;
+  /* Takes what the heading leaves; rows divide it evenly. min-height:0 is what
+     lets a grid row shrink below its content at all. */
+  flex: 0 1 auto;
+  min-height: 0;
+  /* The 54px floor stops rows compressing past their own text. Past that the
+     stack outgrows the pin, and the motion layer drops the pin instead. */
+  grid-auto-rows: minmax(54px, 1fr);
   /*
-   * What the stack resolves into: one light field, declared here and shared
-   * by every plate. Each plate shows only its own band of it, so it means
-   * nothing until the last plate seats and the field runs unbroken from the
-   * cyan at the top-left to the violet at the bottom-right — six parts, one
-   * finished thing.
+   * The light field the stack resolves into. Each plate shows one band of it,
+   * so it means nothing until the last plate seats and the field runs unbroken
+   * from cyan to violet.
    *
-   * Light rather than a picture, and that is the whole point. A photograph
-   * or a drawing has to survive the scrim that keeps this copy readable, and
-   * nothing does: it flattens to a smear at any strength that protects the
-   * text. A gradient has no detail to lose, so it stays legible through the
-   * scrim and still reads as one continuous object across the stack.
-   *
-   * The two blooms are placed left of centre and are cut off by the scrim
-   * before they reach the body copy, so the glow lives on the number side
-   * and the reading side of every plate stays dark.
+   * Light, not a picture: a gradient has no detail to lose, so it survives the
+   * scrim that keeps the copy readable. Both blooms sit left of centre and are
+   * cut off before the body copy, keeping the reading side dark.
    */
   --bld-field: radial-gradient(
       90% 260% at 26% -10%,
@@ -1836,24 +1761,19 @@
 }
 
 /*
- * The empty bay each plate drops into: a recess milled into the chassis, cut
- * to exactly the plate's size. Visible from the moment the section is pinned,
- * so the stack reads as a machine waiting to be filled rather than as a blank
- * stretch of page — and so every plate visibly lands in a place that was
- * already there for it.
- *
- * Deliberately unpositioned. The plates measure their bands off each other's
- * offsetTop, and positioning the bay would make it their offsetParent and
- * collapse every one of those measurements to zero.
+ * The recess each plate drops into, cut to the plate's size and visible from
+ * the moment the section pins, so the stack reads as a machine waiting to be
+ * filled. Note that this is the plates' offsetParent — the motion layer
+ * measures their bands off the bays for that reason.
  */
 .zx-bldbay {
   position: relative;
+  /* Shrinks with its row; see the note on .zx-bldstack. */
+  min-height: 0;
   border-radius: 9px;
-  /*
-   * The floor is lighter than the page, not darker. Against a near-black
-   * background a dark fill is simply invisible; what makes a recess read is
-   * a floor the eye can see, with the shadow of the lip falling across it.
-   */
+  /* The floor is lighter than the page, not darker — against near-black a
+     dark fill is invisible, and a recess needs a floor plus the lip's shadow
+     falling across it. */
   background: linear-gradient(
     180deg,
     rgb(0 0 0 / 0.55),
@@ -1864,11 +1784,8 @@
     inset 0 -1px 0 0 rgba(255, 255, 255, 0.07),
     inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
-/*
- * The waiting row, laid out on exactly the plate's grid so the ghost sits
- * under the type that will replace it and the swap lands without a shift.
- * Absolute, so the plate alone decides how tall the bay is.
- */
+/* The waiting row, on exactly the plate's grid so the swap lands without a
+   shift. Absolute, so the plate alone sets the bay's height. */
 .zx-bldghost {
   position: absolute;
   inset: 0;
@@ -1886,13 +1803,9 @@
 }
 
 /*
- * number | claim | reason | glyph | pip.
- *
- * The claim column is narrower than it looks like it should be on purpose. Set
- * wide enough for the longest title, every shorter one left a dead band of a
- * couple of hundred pixels before the reason began, which is what made the
- * plates read as half-empty. Trimmed, the two text columns sit close enough to
- * scan as one line while still aligning down the stack.
+ * number | claim | reason | glyph | pip. The claim column is deliberately
+ * narrower than the longest title needs, so short titles leave no dead band
+ * before the reason and the two columns scan as one line.
  */
 .zx-bldslab,
 .zx-bldghost {
@@ -1900,12 +1813,10 @@
   grid-template-columns: auto minmax(0, 0.62fr) minmax(0, 1.4fr) auto auto;
   align-items: center;
   gap: clamp(14px, 1.9vw, 34px);
-  padding: clamp(13px, 1.7vh, 23px) clamp(22px, 2.4vw, 40px);
+  padding: clamp(8px, 1.4svh, 23px) clamp(22px, 2.4vw, 40px);
+  min-height: 0;
 }
-/*
- * The glyph. Dim while the plate waits, accent once it seats — it inherits
- * `color`, so the whole state change is one property.
- */
+/* The glyph inherits `color`, so waiting → seated is one property. */
 .zx-bldart {
   display: grid;
   place-items: center;
@@ -1926,14 +1837,9 @@
   position: relative;
   /* Machined radius, not card radius. */
   border-radius: 9px;
-  /*
-   * Top to bottom: a machined hatch so this still reads as milled metal and
-   * not a gradient card, the scrim that opens at the left and closes hard
-   * under the body copy, this plate's band of the shared light field, and
-   * the plate's own navy base. --bgh and --bgy are written by the motion
-   * layer from the stack's measured geometry, so the bands line up exactly
-   * whatever the plates end up being.
-   */
+  /* Top to bottom: machined hatch, the scrim that opens left and closes under
+     the copy, this plate's band of the shared field, navy base. --bgh/--bgy
+     come from the motion layer's measured geometry. */
   background-image:
     repeating-linear-gradient(
       96deg,
@@ -1996,11 +1902,8 @@
     bottom 0.45s var(--ease);
 }
 .zx-bldslab[data-on="1"] {
-  /*
-   * Seated: the scrim eases off at the left so this plate's band of the
-   * field brightens as it locks in. It still closes to full strength before
-   * the body copy — the plate lights up, the text never pays for it.
-   */
+  /* Seated: the scrim opens further at the left so the band brightens, still
+     closing to full strength before the body copy. */
   background-image:
     repeating-linear-gradient(
       96deg,
@@ -2045,13 +1948,8 @@
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: transparent;
-  /*
-   * White at rest, not cyan: the number bay sits inside the light field, and
-   * a cyan outline on a cyan field has nothing to separate against. White is
-   * the one hue the field never reaches, so it holds at every position in the
-   * stack — and it makes the switch to cyan on landing read as the number
-   * lighting up rather than merely brightening.
-   */
+  /* White at rest: the number sits inside the light field, and white is the
+     one hue that field never reaches. Landing switches it to cyan. */
   -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.42);
   transition: -webkit-text-stroke-color 0.45s var(--ease);
 }
@@ -2062,15 +1960,15 @@
   margin: 0;
   font-family: var(--font-grotesk), sans-serif;
   font-weight: 700;
-  font-size: clamp(17px, 1.75vw, 29px);
+  font-size: min(clamp(17px, 1.75vw, 29px), 3.6svh);
   line-height: 1.1;
   letter-spacing: -0.03em;
   color: var(--ink);
 }
 .zx-blddesc {
   margin: 0;
-  font-size: clamp(12.5px, 1vw, 15.5px);
-  line-height: 1.5;
+  font-size: min(clamp(12.5px, 1vw, 15.5px), 2svh);
+  line-height: 1.45;
   color: var(--dim);
 }
 /* The status pip at the far end: dark until the plate is seated, then lit. */
@@ -2091,11 +1989,20 @@
   box-shadow: 0 0 14px rgb(var(--acc-rgb) / 0.9);
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1023.98px) {
+  /*
+   * Below lg the section stops trying to be exactly one screen tall. The
+   * motion layer measures the same thing and drops the pin when the stack
+   * cannot fit, so here the plates simply take the height their content needs
+   * and the page scrolls past them.
+   */
   .zx-bldpin {
     min-height: 0;
     padding-top: clamp(50px, 8vh, 90px);
     padding-bottom: clamp(50px, 8vh, 90px);
+  }
+  .zx-bldstack {
+    grid-auto-rows: auto;
   }
   /*
    * Narrow: number | claim over reason | glyph | pip. The ghost has to keep
@@ -2127,7 +2034,7 @@
   }
 }
 /* Tightest widths: the glyph is the first thing to go, not the copy. */
-@media (max-width: 560px) {
+@media (max-width: 639.98px) {
   .zx-bldart {
     display: none;
   }
@@ -2135,15 +2042,12 @@
 
 /* Metrics tape ------------------------------------------------------- */
 /*
- * The numbers are the section. One horizontal tape of display-scale values
- * slides through a pinned viewport as the reader scrolls: whichever value sits
- * at the centre fills in solid accent, and its neighbours wait either side as
- * hollow outlines. There is no other furniture — no card, no image, no dots.
- * The outlines themselves say "there are more", and the fill says "this one".
+ * The numbers are the section: a tape of display-scale values sliding through
+ * a pinned viewport, the centred one filled solid, its neighbours hollow. No
+ * other furniture — the outlines say "there are more", the fill says "this".
  *
- * The tape is centred by measurement in the runtime, not by percentages: the
- * values differ in width ("0.9s" against "17"), so the distance between their
- * centres is irregular and only the layout knows it.
+ * Centred by measurement in the runtime, not percentages: values differ in
+ * width, so the gaps between their centres are irregular.
  */
 .zx-metrics {
   position: relative;
@@ -2295,14 +2199,11 @@
 }
 
 /*
- * Narrow: the same instrument, not a different section. The reel, the tape
- * and the gyroscope all survive — a phone just gets the closer crop. The type
- * ramp leans on vw so it steps down on its own; what needs declaring is the
- * gauge (sized against the narrow edge so the gimbal still encircles the
- * figure instead of towering past the screen) and a slightly taller copy box,
- * because 52ch wraps to three lines down here.
+ * Narrow: the same instrument, closer cropped. The type ramp steps down on its
+ * own via vw; only the gauge (sized off the narrow edge so the gimbal still
+ * encircles the figure) and the taller copy box need declaring.
  */
-@media (max-width: 1000px) {
+@media (max-width: 1023.98px) {
   .zx-mxval {
     font-size: clamp(88px, 26vw, 330px);
   }
@@ -2423,11 +2324,9 @@
   color: var(--acc);
 }
 /*
- * The glyph counter-rotates, never the box. The marker dot below is positioned
- * in the box's own frame and has to stay on the rim, so the box must keep its
- * spoke alignment — turning it would swing the dot off along with the digits.
- * Zero on desktop, where the active spoke already points east and the numerals
- * are upright of their own accord.
+ * The glyph counter-rotates, never the box: the marker dot is positioned in
+ * the box's frame and must stay on the rim. Zero on desktop, where the active
+ * spoke points east and the numerals are already upright.
  */
 .zx-spokedigit {
   display: inline-block;
@@ -2477,17 +2376,12 @@
 .zx-sigsteps {
   position: relative;
   /*
-   * The steps are clipped to this box and travel right through it: one slides
-   * out of the top while the next slides in from underneath. Fading a step in
-   * on the spot is what a nudge-and-crossfade does, and it doesn't read as
-   * movement — the copy has to actually arrive from somewhere.
+   * Steps are clipped to this box and travel through it: one slides out of the
+   * top as the next arrives from underneath.
    *
-   * The travel is measured against the box, not against a step. A percentage
-   * resolves on the element being transformed, and a step is only as tall as
-   * its own copy — a good bit shorter than the box, which is sized for the
-   * longest of them. Parking one at 108% of itself left it sitting in the
-   * space underneath the active step, in full view. The extra 24px covers the
-   * blur, which bleeds past the edge it is clipped at.
+   * Travel is measured against the box, not a step — a percentage resolves on
+   * the element being transformed, and a step is only as tall as its own copy.
+   * The extra 24px covers the blur, which bleeds past the clip edge.
    */
   --stepbox: clamp(230px, 32vh, 320px);
   --slide: calc(var(--stepbox) + 24px);
@@ -2502,13 +2396,9 @@
   top: 0;
   left: 0;
   right: 0;
-  /*
-   * Not the page's shared --ease. That curve is an expo-out built for things
-   * that should feel like they have already arrived — it spends 55% of the
-   * travel in the first 110ms, which on a slide this long means you see the
-   * copy settling but never really moving. A cubic out covers the same
-   * distance with the motion still legible.
-   */
+  /* A cubic out, not the page's --ease: that expo curve spends 55% of the
+     travel in the first 110ms, which on a slide this long reads as settling
+     rather than moving. */
   transition:
     transform 0.8s cubic-bezier(0.33, 1, 0.68, 1),
     filter 0.6s var(--ease);
@@ -2553,27 +2443,18 @@
 /* The aeroplane ------------------------------------------------------ */
 /*
  * A WebGL scene, not SVG: the airframe is generated from lathed and extruded
- * profiles, so there is no model file to load, and `three` is already fetched
- * for the hero so it costs no extra network. Scroll state reaches it through
- * the assembly store rather than custom properties, since the scene reads it
- * every frame.
+ * profiles, so there is no model to load, and `three` is already fetched for
+ * the hero. Scroll state arrives through the assembly store, which the scene
+ * reads every frame.
  *
- * The canvas covers the whole pinned section rather than sitting in a box on
- * the right. Stage five flies the aircraft across the section, and confining it
- * to a corner meant the departure left the frame a third of the way through.
- * Where it rests inside that frame is the scene's business, not the layout's.
- *
- * z-index 1 keeps it under .zx-siginner's 2, so on the stages where the flight
- * path passes the copy it passes behind it and the text stays readable.
- * .zx-sigpin clips it, so it can never spill into the sections either side.
+ * The canvas spans the whole pinned section so the stage-five flight has room
+ * to cross it. z-index 1 keeps it under .zx-siginner's 2, so the flight path
+ * passes behind the copy; .zx-sigpin clips it to the section.
  */
 .zx-sigform {
-  /*
-   * How the scene frames itself is left to the layout, because only the layout
-   * knows how much room the aircraft has been given. --plane-frame is the world
-   * width the canvas spans, so a smaller number is a closer shot; --plane-rest
-   * is where it parks, as a fraction of the half-width right of centre.
-   */
+  /* Framing is the layout's call, since only it knows the room available.
+     --plane-frame is the world width the canvas spans (smaller = closer);
+     --plane-rest is where it parks, as a fraction of the half-width. */
   --plane-frame: 26;
   --plane-rest: 0.6;
   position: absolute;
@@ -2588,19 +2469,13 @@
 }
 
 /*
- * Narrow: the aircraft moves to the bottom band rather than dropping out. Once
- * the arc takes the top of the section and the copy sits under it, that band is
- * empty — and it is where the reference puts its own illustration.
- *
- * It has to come a long way in to survive the move. The framing is by width, so
- * a portrait canvas puts the camera far enough back to render the airframe
- * around 100px long, and parking it off to one side of a 375px canvas leaves it
- * half over the copy. Closer, and centred.
- *
- * Matched to the wheel's breakpoint, not the 1100 this used to hide at, so the
- * whole section rearranges in one step instead of two.
+ * Narrow: the aircraft moves to the bottom band, which the arc leaves empty.
+ * Framing is by width, so a portrait canvas would otherwise put the camera far
+ * enough back to render the airframe about 100px long — hence much closer, and
+ * centred rather than parked to one side. Shares the wheel's breakpoint so the
+ * section rearranges in one step.
  */
-@media (max-width: 1000px) {
+@media (max-width: 1023.98px) {
   .zx-sigform {
     --plane-frame: 11;
     --plane-rest: 0;
@@ -2610,19 +2485,15 @@
 }
 
 /*
- * Narrow: the arc moves from the left edge to the top, rather than dropping
- * out. A left-anchored circle cannot survive this far down — to keep the
- * numbers clear of the copy on a 390px screen its rim has to sit around 45px
- * in, which puts the radius near 85 and packs five numbers 44px apart. Swung
- * overhead there is the full width to spread across, which is what the
- * reference does at this size too.
+ * Narrow: the arc swings from the left edge to overhead, where it has the full
+ * width to spread across — left-anchored, the radius collapses to about 85 and
+ * packs five numbers 44px apart.
  *
- * The centre goes above the section and the active spoke points south, so the
- * numbers ride the bottom of the circle. --arc is where that active number
- * lands, measured from the top of the section; the circle is then placed from
- * it, and the copy is pushed clear below it.
+ * The centre sits above the section with the active spoke pointing south, so
+ * the numbers ride the bottom of the circle. --arc is where that active number
+ * lands, measured from the section top; the circle and copy follow from it.
  */
-@media (max-width: 1000px) {
+@media (max-width: 1023.98px) {
   .zx-sigpin {
     --arc: clamp(150px, 21vh, 215px);
     justify-content: flex-start;
@@ -2665,13 +2536,7 @@
   }
 }
 /* FAQ ---------------------------------------------------------------- */
-/*
- * Two columns from tablet up: the title block holds the left, the questions
- * run down the right. Full width, the accordion stretched a six-line list
- * across the whole measure and left the right half of the section empty —
- * plenty of air with nothing in it, which is what made this the flattest
- * section on the page.
- */
+/* Two columns from lg up: title block left, questions right. */
 .zx-faqgrid {
   max-width: var(--wide);
   margin: 0 auto;
@@ -2679,7 +2544,7 @@
   grid-template-columns: 1fr;
   gap: clamp(28px, 4vw, 60px);
 }
-@media (min-width: 900px) {
+@media (min-width: 1024px) {
   .zx-faqgrid {
     grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
     align-items: start;
@@ -2855,13 +2720,15 @@
   z-index: 0;
 }
 
-/* The debris. Bare display-weight words, no chrome — the noise falls as type,
- * big and white, placed by the sim's transform every frame. */
+/* The debris: bare display-weight words placed by the sim's transform every
+ * frame. Sized against the stage's height as well as its width, so it stays in
+ * proportion to the space it has to fall through on a wide, short screen. */
 .zx-fword {
   position: absolute;
   left: 0;
   top: 0;
-  font: 700 clamp(34px, 4.4vw, 64px) / 1 var(--font-grotesk), sans-serif;
+  font: 700 clamp(26px, min(4.4vw, 7svh), 64px) / 1 var(--font-grotesk),
+    sans-serif;
   letter-spacing: -0.03em;
   white-space: nowrap;
   color: #fff;
@@ -3223,7 +3090,7 @@
   opacity: 1;
   transform: translateY(0);
 }
-@media (max-width: 900px) {
+@media (max-width: 1023.98px) {
   .zx-fface-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 22px;
@@ -3235,7 +3102,12 @@
 
 .zx-fwrap {
   position: relative;
-  min-height: 340px;
+  /*
+   * Holds the three steps at one height so the nav does not jump between
+   * questions. Sized to the tallest step, but it has to give way on a short
+   * screen or it reserves room the viewport does not have.
+   */
+  min-height: clamp(240px, 34svh, 340px);
 }
 .zx-fstep {
   transition:
@@ -3256,22 +3128,18 @@
   pointer-events: auto;
   transform: translateY(0);
 }
-.zx-fh2 {
-  margin: 0 0 clamp(22px, 3vw, 40px);
-  font-family: var(--font-grotesk), sans-serif;
-  font-weight: 500;
-  font-size: clamp(28px, 4.6vw, 68px);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  text-wrap: balance;
-}
 .zx-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
+/*
+ * The form's controls are rationed by viewport height: px floors keep them
+ * tappable, svh ceilings only bite below about 900px of viewport, so a large
+ * screen renders them unchanged.
+ */
 .zx-chip {
-  padding: 14px 22px;
+  padding: clamp(9px, 1.3svh, 14px) clamp(16px, 1.6vw, 22px);
   border-radius: 100px;
   border: 1px solid var(--line);
   background: transparent;
@@ -3311,7 +3179,7 @@
 }
 .zx-slider {
   position: relative;
-  height: 46px;
+  height: clamp(34px, 4.6svh, 46px);
   display: flex;
   align-items: center;
   cursor: grab;
@@ -3362,7 +3230,8 @@
 .zx-fieldgrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: clamp(16px, 2vw, 28px);
+  /* Row gap gives way on a short screen; column gap is a width matter. */
+  gap: clamp(12px, 1.8svh, 28px) clamp(16px, 2vw, 28px);
 }
 .zx-label {
   display: block;
@@ -3376,17 +3245,25 @@
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--dim);
-  margin-bottom: 10px;
+  margin-bottom: clamp(6px, 0.9svh, 10px);
 }
 .zx-field {
   width: 100%;
-  padding: 14px 0;
+  padding: clamp(9px, 1.3svh, 14px) 0;
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--line);
   outline: none;
-  font-size: 16px;
+  /* Never below 16px on a touch device — iOS zooms the page on focus if an
+     input's text is smaller than that, which would wreck the layout mid-form.
+     The floor here is the desktop one; the media query below restores 16px. */
+  font-size: clamp(14px, 1.05vw, 16px);
   transition: border-color 0.4s;
+}
+@media (pointer: coarse) {
+  .zx-field {
+    font-size: 16px;
+  }
 }
 .zx-field:focus {
   border-color: var(--acc);
@@ -3404,15 +3281,6 @@
   opacity: 1;
   transform: translateY(0);
 }
-.zx-fdonebig {
-  font-family: var(--font-grotesk), sans-serif;
-  font-weight: 700;
-  font-size: clamp(38px, 6vw, 96px);
-  line-height: 0.95;
-  letter-spacing: -0.05em;
-  text-transform: uppercase;
-  color: var(--acc);
-}
 .zx-fdonetext {
   margin: 18px auto 0;
   max-width: 44ch;
@@ -3425,9 +3293,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: clamp(30px, 4vw, 54px);
-  padding-top: 24px;
+  margin-top: clamp(18px, 2.6svh, 54px);
+  padding-top: clamp(14px, 2svh, 24px);
   border-top: 1px solid var(--line);
+}
+/* Scoped to the form: the hero and nav buttons keep their full size. */
+.zx-fnav .zx-btn {
+  padding: clamp(11px, 1.6svh, 17px) clamp(20px, 2vw, 30px);
 }
 
 /* Footer ------------------------------------------------------------- */
@@ -3449,7 +3321,7 @@
   flex-direction: column;
   border-radius: clamp(26px, 4vw, 56px);
   border: 1px solid var(--line);
-  background: #1a2348;
+  background: var(--surface);
   overflow: hidden;
 }
 /* Above the fluid; carries the flex column across the panel's full height. */
@@ -3561,11 +3433,8 @@
     rgb(10 10 11 / 0.2) 100%
   );
 }
-/*
- * One hairline strip carries every link and fact the old three columns did.
- * The finale belongs to the statement and the wordmark; a block of sitemap
- * between them diluted both.
- */
+/* One hairline strip rather than columns of sitemap: the finale belongs to
+   the statement and the wordmark. */
 .zx-footnav {
   margin-top: auto;
   display: flex;
@@ -3622,11 +3491,8 @@
   color: var(--dim);
 }
 /*
- * Sits in the flow between the link columns and the wordmark rather than
- * absolutely in the corner, where the source design had it covering the studio
- * address. Auto left margin keeps it right-aligned; the negative margins pull
- * it into the whitespace so it still reads as slapped on. Drag transforms are
- * unaffected either way.
+ * In the flow between the link columns and the wordmark, not absolute in the
+ * corner. Auto left margin right-aligns it; the negative margins pull it into
+ * the whitespace so it still reads as slapped on. A light disc keeps the
+ * mark's darker blues legible.
  */
-/* Light disc so the mark's darker blues stay legible; on the accent purple
- * the lower half of its gradient sank into the fill. */

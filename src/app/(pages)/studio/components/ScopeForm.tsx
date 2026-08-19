@@ -6,6 +6,16 @@ import Bot, { type Emote as BotEmote } from "./Bot";
 
 const STEPS = 3;
 
+/**
+ * BUDGET is in thousands of rupees. Rendered on the scale the audience reads
+ * in: thousands below a lakh, lakh above it — 250 is "₹2.5L", not "₹250k".
+ */
+function formatBudget(thousands: number): string {
+  if (thousands < 100) return `₹${thousands}k`;
+  // Number() drops the trailing zero toFixed leaves behind: 1.50 -> 1.5.
+  return `₹${Number((thousands / 100).toFixed(2))}L`;
+}
+
 
 /**
  * The debris. Everything a project brief usually arrives buried under — it
@@ -45,7 +55,9 @@ const QUESTIONS = [
   "What's the shape of it?",
   "Who's asking?",
 ];
-const SENT_LINE = "Got it. A real person reads this within 24 hours.";
+/* 48 hours, matching the ticker and the audit turnaround in STATS. This is
+   still a promise the form cannot keep — see the note on the submit handler. */
+const SENT_LINE = "Got it. A real person reads this within 48 hours.";
 
 type Expr = "idle" | "happy" | "wide" | "down" | "joy";
 /**
@@ -117,10 +129,27 @@ function createNoiseSim(
   onSettled: () => void,
   onCleared: () => void,
 ) {
-  const W = stage.clientWidth;
-  const H = stage.clientHeight;
-  const floor = H - 12;
+  /*
+   * The world's dimensions, re-read whenever the stage resizes. Its height
+   * follows the form inside it and the viewport, so a resize or rotation would
+   * otherwise strand resting bodies on a floor that no longer exists.
+   */
+  let W = stage.clientWidth;
+  let H = stage.clientHeight;
+  let floor = H - 12;
   const G = 1500;
+
+  const ro = new ResizeObserver(() => {
+    W = stage.clientWidth;
+    H = stage.clientHeight;
+    floor = H - 12;
+    for (const b of bodies) {
+      if (b.gone || b.kicked) continue;
+      // Keep it inside the walls, and re-seat it if it was already down.
+      b.x = Math.min(Math.max(b.x, 44 + b.hw), Math.max(44 + b.hw, W - 44 - b.hw));
+      if (b.rest) b.y = floor - b.hh;
+    }
+  });
 
   const spawn = (el: HTMLSpanElement, i: number, word: boolean): Body => {
     stage.appendChild(el);
@@ -162,6 +191,9 @@ function createNoiseSim(
   items.sort(() => Math.random() - 0.5);
   const bodies: Body[] = items.map((it, i) => spawn(it.el, i, it.word));
   const isWord = new Map(bodies.map((b, i) => [b, items[i].word]));
+
+  // Observed only once the bodies exist — the callback reads them.
+  ro.observe(stage);
 
   let faceFront = -Infinity;
   let sweeping = false;
@@ -270,22 +302,20 @@ function createNoiseSim(
     },
     destroy() {
       cancelAnimationFrame(raf);
+      ro.disconnect();
       bodies.forEach((b) => b.el.remove());
     },
   };
 }
 
 /**
- * Three-step scoping form, hosted by Unit 05, the studio robot.
+ * Three-step scoping form, hosted by Unit 05.
  *
- * The entrance: project noise rains into the section and piles up under real
- * gravity; the face announces "Let me make this simple for you", descends to
- * the floor, sweeps across it kicking every word off screen, comes back,
- * says "There. Three questions." — and the form appears.
+ * Entrance: project noise rains in under gravity and piles up; the robot
+ * announces itself, sweeps the floor clear, and the form appears.
  *
- * Note: like the source design, submitting only advances to the confirmation
- * state — nothing is posted anywhere yet. Wire `onSubmit` to the contact
- * endpoint when this page goes live.
+ * ⚠ Submitting only advances to the confirmation state — nothing is posted
+ * anywhere. Wire `onSubmit` to the contact endpoint before launch.
  */
 export default function ScopeForm() {
   const [step, setStep] = useState(0);
@@ -609,7 +639,9 @@ export default function ScopeForm() {
                 <div className="zx-sliderhead">
                   <span className="zx-slidercap">Budget</span>
                   <span className="zx-sliderval">
-                    {budget >= BUDGET.max ? "€250k+" : `€${budget}k`}
+                    {budget >= BUDGET.max
+                      ? `${formatBudget(BUDGET.max)}+`
+                      : formatBudget(budget)}
                   </span>
                 </div>
                 <div
@@ -621,7 +653,9 @@ export default function ScopeForm() {
                   aria-valuemax={BUDGET.max}
                   aria-valuenow={budget}
                   aria-valuetext={
-                    budget >= BUDGET.max ? "€250k or more" : `€${budget}k`
+                    budget >= BUDGET.max
+                      ? `${formatBudget(BUDGET.max)} or more`
+                      : formatBudget(budget)
                   }
                   tabIndex={0}
                   data-drag={dragging ? "1" : "0"}
@@ -651,8 +685,8 @@ export default function ScopeForm() {
                   />
                 </div>
                 <div className="zx-sliderends">
-                  <span>€25k</span>
-                  <span>€250k+</span>
+                  <span>{formatBudget(BUDGET.min)}</span>
+                  <span>{formatBudget(BUDGET.max)}+</span>
                 </div>
 
                 <div

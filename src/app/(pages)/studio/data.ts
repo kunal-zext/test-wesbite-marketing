@@ -4,10 +4,8 @@
  */
 
 /*
- * Listed in the order the page presents them, so the nav reads as a map.
- * A { href: "#work", label: "Work" } entry belongs between Process and FAQ,
- * but only once WORK below has entries — a nav link to a section that renders
- * nothing scrolls the reader to the wrong place.
+ * In page order. Add { href: "#work", label: "Work" } between Process and FAQ
+ * only while WORK below is non-empty.
  */
 export const NAV_LINKS = [
   { href: "#studio", label: "Studio" },
@@ -18,28 +16,14 @@ export const NAV_LINKS = [
 export const HERO = {
   eyebrow: "Design & engineering",
   place: "Mumbai",
-  /**
-   * "You're one brief away from launch."
-   *
-   * Written for the booking, not for applause: the visitor is the subject, the
-   * finish line is named, and the ask is reduced to a single thing they already
-   * have. That makes the CTA below read as claiming something rather than
-   * entering a funnel.
-   *
-   * The emphasis word sits mid-sentence with text after it, the position the
-   * source design used. Each line is split per character for the intro reveal.
-   */
+  /* One line per display row; `em` marks the serif emphasis word. Split per
+     character by the intro reveal. */
   lines: [
     [{ text: "You're one" }],
     [{ text: "brief", em: true }, { text: " away" }],
     [{ text: "from launch." }],
   ],
-  /**
-   * Paired statements, one pair per line: mechanism, then claim, then the ask.
-   * Broken this way the block keeps a rhythm a flat paragraph cannot, and each
-   * pair gets its own beat in the reveal. Pairs wrap on narrow viewports, which
-   * is why the gap between lines stays larger than the leading inside them.
-   */
+  /* One line per beat of the reveal: mechanism, claim, ask. */
   lede: [
     [{ text: "AI agents do the heavy lifting. People with taste make the calls." }],
     [
@@ -56,14 +40,12 @@ export const TICKER = [
   "Two build slots open for Q4 2026",
   "Median engagement: 9 weeks",
   "Mumbai / remote / everywhere",
-  "We answer in under 24h",
+  /* Keep in step with the turnaround in STATS and the form's sent message. */
+  "We answer within 48h",
 ] as const;
 
-/**
- * Three ways in, in the order a client meets them: start something, get it
- * found, or fix what exists. The section aside ("Build it. Rank it. Fix it.")
- * maps one-to-one onto these rows, so keep them in this order if either changes.
- */
+/* The section aside "Build it. Rank it. Fix it." maps onto these three in
+   order — keep them in step. */
 export const SERVICES = [
   {
     num: "01",
@@ -82,33 +64,22 @@ export const SERVICES = [
   },
 ] as const;
 
-/**
- * The metrics reel. `value` is a display string rather than a target to count
- * up to: the reel's own slide is the animation now, and a counter ticking
- * inside a tile that is itself sliding reads as two effects fighting over the
- * same glyphs. The label is split into a headline and a sentence because the
- * card beside the tile has room for both, and a bare label left it empty.
+/*
+ * The metrics tape. `value` is a display string, not a count-up target.
+ * The tape sizes itself to this array, so adding an entry needs no other
+ * change. Figures here must be measured — the section reads "Measured, not
+ * claimed".
  */
 export const STATS = [
   {
-    value: "41",
-    title: "Flagship builds",
-    desc: "Shipped since 2019. Every one designed, built and launched in-house. No white-label, no handoff.",
+    value: "7 days",
+    title: "Legacy site revamped",
+    desc: "Thirty-six pages taken apart and rebuilt end to end inside a single week.",
   },
   {
-    value: "0.9s",
-    title: "Median LCP",
-    desc: "Across every live client site. Motion-heavy pages that still load like static ones.",
-  },
-  {
-    value: "17",
-    title: "Honours, unbought",
-    desc: "Awwwards and FWA recognition earned on the work itself, never on a submissions budget.",
-  },
-  {
-    value: "4.9×",
-    title: "Qualified demos",
-    desc: "Median lift in qualified demo requests after launch, measured against the site we replaced.",
+    value: "48 hours",
+    title: "Full site audit",
+    desc: "5,000+ pages audited and 225k+ issues found.",
   },
 ] as const;
 
@@ -139,17 +110,10 @@ export const PILLARS = [
   },
 ] as const;
 
-/**
- * What actually lands in your hands, in the order the engagement produces it.
- *
- * Deliverables, deliberately — not benefits. PILLARS above already argues what
- * a good website *does*; this section used to repeat those same four claims in
- * different words, which read to a visitor as the page stuttering rather than
- * as a second beat. Framed as deliverables it answers the pillars instead of
- * echoing them: there is the claim, and here is the thing you receive.
- *
- * Every line here is a commitment STAGES or FAQS already makes elsewhere on
- * the page — nothing new is promised in this list.
+/*
+ * Deliverables, in the order the engagement produces them — not benefits.
+ * PILLARS argues what a good site does; this answers it with what you receive.
+ * Keep every line to a commitment STAGES or FAQS already makes.
  */
 export const INCLUDED = [
   {
@@ -178,24 +142,16 @@ export const INCLUDED = [
   },
 ] as const;
 
-/**
- * Selected work — empty, so the section does not render.
- *
- * There is nothing publishable to show yet, and a page that invents case
- * studies to fill the gap is worse than a page with one fewer section. The
- * section builds itself from this array and returns null while it is empty, so
- * nothing about the running order has to be touched to keep it hidden.
- *
- * To bring it back, add entries in this shape:
+/*
+ * Selected work. The section renders only while this has entries, e.g.
  *
  *   { name: "Manufacturing site rebuild",
  *     sector: "Industrial · Mumbai",
- *     result: "A twelve-year-old site rebuilt around what buyers search for." }
+ *     result: "Rebuilt around what buyers actually search for." }
  *
- * `result` is a sentence rather than a number on purpose: quote a figure only
- * where the client has agreed it may be published. Re-adding the section also
- * means putting its nav link back below and renumbering the three sections
- * that follow it — see the running order in page.tsx.
+ * Quote a figure in `result` only where the client has agreed to publish it.
+ * Filling this also means restoring the #work nav link above and renumbering
+ * the sections after it — see the running order in page.tsx.
  */
 export const WORK: ReadonlyArray<{
   name: string;
@@ -236,13 +192,9 @@ export const STAGES = [
   },
 ] as const;
 
-/**
- * Supplied by the studio, and kept verbatim.
- *
- * They map onto SERVICES rather than wandering: the first answers "Build from
- * your brief", the last answers "Audit & revamp", and the AEO/GEO one explains
- * the middle offer in plain words. The ordering runs from the objection a
- * first-time client raises soonest to the one they raise last.
+/*
+ * Studio copy, verbatim. Ordered by how soon a first-time client raises each
+ * objection, and mapped onto SERVICES: build-from-brief, AEO/GEO, audit.
  */
 export const FAQS = [
   {
@@ -282,14 +234,11 @@ export const PROJECT_TYPES = [
 export const TIMELINES = ["Yesterday", "Next quarter", "This year, no rush"] as const;
 
 /*
- * The hero, the ticker and the footer clock all say Mumbai; the address said
- * Lisbon, left over from the demo content. Deliberately no street line — a
- * placeholder street would be a lie printed under a heading that says "Here".
- * Fill in the real one, and replace the phone, which is still a Portuguese
- * placeholder number.
+ * No street line until there is a real one to print. The email is the site's
+ * canonical address, shared with the main footer and the blog.
  */
 export const CONTACT = {
-  email: "hello@zext.digital",
+  email: "contact@zextdigital.ai",
   address: ["Mumbai, India", "Remote, everywhere else"],
 } as const;
 
@@ -299,28 +248,31 @@ export const FOOTER_LINKS = {
     { href: "#faq", label: "FAQ" },
     { href: "#contact", label: "Start a project" },
   ],
+  /* Mirrors the shared site footer, same order. External, so the footer
+     renders these with target/rel. */
   elsewhere: [
-    { href: "#top", label: "Instagram" },
-    { href: "#top", label: "Are.na" },
-    { href: "#top", label: "GitHub" },
-    { href: "#top", label: "LinkedIn" },
+    { href: "https://linkedin.com/company/zext-digital", label: "LinkedIn" },
+    { href: "https://www.instagram.com/zextdigital/", label: "Instagram" },
+    { href: "https://x.com/zextdigital", label: "X" },
   ],
 } as const;
 
-/* "Lda." was the Portuguese demo entity — set the real registered name here. */
+/* Set the real registered entity name here. */
 export const FOOTER_BAR = [
   "© 2026 Zext Digital",
   "Built in-house. Obviously.",
   "Two slots left for Q4",
 ] as const;
 
-/** Budget slider bounds, in thousands of euro. */
+/**
+ * Budget slider bounds, in thousands of rupees: ₹25k to ₹2.5L, stepping 5k.
+ * The form renders these through formatBudget(), which switches to lakh above
+ * 100. ⚠ These bounds are inherited from the euro slider they replaced — set
+ * them to the studio's real range.
+ */
 export const BUDGET = { min: 25, max: 250, start: 75, step: 5 } as const;
 
-/*
- * Preloader greetings. Mumbai first among the non-English ones — नमस्कार is the
- * Marathi greeting, not the Hindi नमस्ते.
- */
+/* Preloader greetings. नमस्कार is Marathi, for Mumbai. */
 export const GREETINGS = [
   "Hello",
   "नमस्कार",

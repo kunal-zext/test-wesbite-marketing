@@ -61,13 +61,10 @@ export default function StudioShell({ children }: { children: React.ReactNode })
     if (!pre) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    /*
-     * FIRST holds the opening greeting a beat longer than the rest so the run
-     * reads as deliberate rather than as a flicker; WORD is the beat for each
-     * one after it. CAP is the hard ceiling if fonts stall — the content
-     * underneath is already painted, so none of this gates LCP for a visitor
-     * who scrolls straight past.
-     */
+    /* FIRST holds the opening greeting a beat longer so the run reads as
+       deliberate; WORD is the beat for each after it; CAP is the ceiling if
+       fonts stall. The content beneath is already painted, so none of this
+       gates LCP. */
     const FIRST = 520;
     const WORD = 150;
     const CAP = 2600;

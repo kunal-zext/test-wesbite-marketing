@@ -4,12 +4,7 @@
  *
  *   p  0 = first metric holding, 1 = last metric reached
  *
- * On `window` for the same reason as the assembly store: the writer (useMotion)
- * and the reader (the Gauge canvas) are separate "use client" entry points, and
- * a module-level binding shared across two client boundaries can be bundled
- * into both chunks — leaving each side with its own copy.
- *
- * Not React state: this changes every scrubbed frame.
+ * On `window` and not React state, for the reasons in assembly.ts.
  */
 
 const KEY = "__zxGauge";

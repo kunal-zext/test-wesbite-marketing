@@ -6,7 +6,7 @@ import { AcademyLeadTracker } from "../components/AcademyLeadTracker";
 
 const title = "Thank you | Zext Academy";
 const description =
-  "Your discovery session request has been received. Our founding team will reach out within 48 hours.";
+  "Your discovery session request has been received — our founding team will reach out within 48 hours.";
 
 export const metadata: Metadata = {
   title,

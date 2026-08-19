@@ -15,13 +15,13 @@ const QUESTIONS = [
 const INSIGHTS = [
   {
     icon: TrendingDown,
-    text: "Logistics cost +6%, Q3 margin driver",
+    text: "Logistics cost +6% — Q3 margin driver",
     tag: "Top driver",
     tone: "down" as const,
   },
   {
     icon: TrendingUp,
-    text: "APAC revenue +18%, fastest region",
+    text: "APAC revenue +18% — fastest region",
     tag: "Growth",
     tone: "up" as const,
   },

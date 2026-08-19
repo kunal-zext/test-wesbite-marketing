@@ -4,30 +4,22 @@ import { useEffect } from "react";
 import { getAssembly } from "./assembly";
 
 /**
- * The section 04 aeroplane, in WebGL.
+ * The process-section aeroplane, in WebGL.
  *
- * The airframe is generated, not modelled — there is no asset to download. Two
- * builders do all the work:
+ * The airframe is generated, not modelled, by two builders:
  *
- *   lathe()  revolves a radius profile to make fuselage sections and engine
- *            ducts, so the hull is a continuous curved surface rather than a
- *            faceted cylinder.
- *   panel()  extrudes a tapered, swept planform to make wings, tailplanes, the
- *            fin and the winglets, each with a bevelled edge that catches the
- *            key light the way a real aerofoil does.
+ *   lathe()  revolves a radius profile into fuselage sections and ducts, so
+ *            the hull is a continuous surface rather than a faceted cylinder.
+ *   panel()  extrudes a tapered, swept planform into wings, tailplanes, fin
+ *            and winglets, each bevelled to catch the key light.
  *
- * `three` is already fetched for the hero shader, so this shares that chunk and
- * adds nothing to the network.
+ * Every part carries a home and a scatter transform; the loop lerps between
+ * them by `k` from the assembly store, then applies `fly` to the whole group.
+ * Solid bodies take a wireframe overlay thresholded past the tessellation
+ * seams, so only structural edges draw.
  *
- * Every part carries a home transform and a scatter transform; the frame loop
- * lerps between them by `k` from the assembly store, then applies `fly` to the
- * whole group. Solid bodies get a wireframe overlay at a threshold high enough
- * to skip the tessellation seams, so only true structural edges draw and the
- * aircraft reads as a technical drawing rather than a product render.
- *
- * The loop idles whenever the canvas is offscreen or the tab is in the
- * background, and repaints once on resize — the same discipline as the hero, so
- * a second context costs nothing while you are elsewhere on the page.
+ * `three` is already fetched for the hero shader. The loop idles offscreen and
+ * in hidden tabs, repainting once on resize.
  */
 
 type PartSpec = {
@@ -80,16 +72,13 @@ export function usePlane3D(canvasRef: React.RefObject<HTMLCanvasElement | null>)
       // (wings and belly pod hang under it), so aim a little low of centre.
       const AIM = new THREE.Vector3(0, -0.35, 0);
       /*
-       * Framed by width rather than parked at a fixed distance. The canvas is
-       * now the section, so its aspect is whatever the viewport makes it, and a
-       * fixed distance would size the aircraft differently on every screen.
-       * These are the world widths the frame spans, so it holds the same share
-       * of the page everywhere.
+       * Framed by width, not a fixed distance: the canvas is the section, so
+       * its aspect follows the viewport and a fixed distance would size the
+       * aircraft differently on every screen. These are the world widths the
+       * frame spans.
        *
-       * It still dollies between the two: scattered, the parts occupy roughly
-       * twice the volume the assembled aircraft does, and a framing that suits
-       * one crops the other. Pulling back as it comes apart also sells the
-       * shot — the aircraft grows into frame as it builds itself.
+       * It dollies between the two — scattered parts occupy about twice the
+       * volume of the assembled aircraft — so it grows into frame as it builds.
        */
       const HALF_ANGLE = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
       /*
@@ -139,14 +128,12 @@ export function usePlane3D(canvasRef: React.RefObject<HTMLCanvasElement | null>)
 
       /* ---- materials --------------------------------------------------- */
       /*
-       * The page background is near-black, so a dark hull disappears into it.
-       * The lift that keeps it visible comes from the hull's own --surface navy
-       * rather than a violet, so the aircraft reads as the same material as the
-       * buttons instead of as a purple object standing next to them. The purple
-       * stays in the rim light, where it is atmosphere rather than surface.
+       * Against a near-black page the hull needs lifting, and the lift comes
+       * from its own --surface navy rather than violet — the purple stays in
+       * the rim light, as atmosphere rather than surface.
        *
-       * DoubleSide because the ducts and aerofoils are open or mirrored shells;
-       * back-face culling would punch holes in them from some angles.
+       * DoubleSide because the ducts and aerofoils are open or mirrored
+       * shells, which back-face culling would punch holes in.
        */
       const body = new THREE.MeshStandardMaterial({
         color: 0x1a2348,
@@ -218,13 +205,11 @@ export function usePlane3D(canvasRef: React.RefObject<HTMLCanvasElement | null>)
       };
 
       /*
-       * Sections are lapped, not butted. A lathe is an open tube, and the
-       * material is DoubleSide, so two sections meeting end to end show the
-       * dark inside of the tube as a ring at every joint — which is what made
-       * the hull read as a stack of segments rather than one body. Each section
-       * carries a constant-radius collar continuing aft, and each section aft
-       * is a hair wider than the one it receives, so the joint is shingled the
-       * way a real fuselage is and no open rim is ever left facing the camera.
+       * Sections are lapped, not butted. A lathe is an open tube and the
+       * material is DoubleSide, so butted ends show the tube's dark inside as
+       * a ring at every joint. Each section carries a constant-radius collar
+       * aft and each is a hair wider than the one it receives, shingling the
+       * joint so no open rim ever faces the camera.
        */
       const LAP = 0.12;
 
@@ -359,23 +344,16 @@ export function usePlane3D(canvasRef: React.RefObject<HTMLCanvasElement | null>)
         spin: [1.3, 0.9, -0.8],
       });
       /*
-       * The tailcone sweeps up, the way it does on anything with a rear door.
-       * The rotation has to hinge on the joint, though, not on the section's
-       * own centre — a part rotates about its position, so spinning it about
-       * the middle lifts the forward face as well and leaves a step where it
-       * meets the barrel (0.208 on a hull of radius 0.4, so half a radius out).
+       * The tailcone sweeps up, hinging on the joint rather than its own
+       * centre: a part rotates about its position, so spinning it about the
+       * middle lifts the forward face too and steps away from the barrel.
+       * Shifting the geometry so its forward end sits on the local origin
+       * makes the home position the hinge, and only the aft end rises.
        *
-       * Shifting the geometry until its forward end sits on the local origin
-       * makes the home position the hinge, so the joint stays put and only the
-       * aft end rises.
-       *
-       * This one is butted rather than lapped, unlike the joints forward of it.
-       * Overlapping a tilted cone means shrinking it until its low side clears
-       * the hull it enters, and the leftover annulus shows as a step. Butting
-       * at the hinge costs nothing instead: the tilt contributes no offset at
-       * the hinge station itself, so 0.400 meets 0.406 concentrically and the
-       * surfaces leave tangent. The crease appears only aft of the joint, which
-       * is exactly where an upswept tail should have one.
+       * Butted, unlike the joints forward of it — overlapping a tilted cone
+       * leaves an annulus that shows as a step, whereas the tilt contributes
+       * no offset at the hinge station, so the surfaces leave tangent and the
+       * crease falls aft of the joint where an upswept tail wants one.
        */
       const TAILCONE_LEN = 1.8;
       const tailcone = section(TAILCONE_LEN, 0.05, 0.4, 0);
@@ -576,16 +554,14 @@ export function usePlane3D(canvasRef: React.RefObject<HTMLCanvasElement | null>)
         const settle = 1 - fly;
 
         /*
-         * Stage five is the departure. It used to translate straight out and
-         * fade, which read fine when the canvas was a box in the corner — but
-         * against a full-section canvas, leaving the frame means leaving the
-         * page. So it flies the section instead: off its rest station on the
-         * right, through a climbing right-hand turn, across to the far side,
-         * and it stays there at full opacity.
+         * Stage five, the departure: off the rest station on the right,
+         * through a climbing right-hand turn, across to the far side, held at
+         * full opacity — against a full-section canvas, leaving the frame
+         * would mean leaving the page.
          *
          * The climb is eased ahead of the crossing (fly^0.55 against fly^1.35)
-         * so it is above the headline before it is over it. The copy sits
-         * mid-left and a straight diagonal would cut right through it.
+         * so it is above the headline before it is over it; a straight
+         * diagonal would cut through the mid-left copy.
          */
         /*
          * The heading is front-loaded rather than eased symmetrically. Turning
@@ -612,15 +588,11 @@ export function usePlane3D(canvasRef: React.RefObject<HTMLCanvasElement | null>)
         group.position.set(
           lerp(halfW * restFrac, halfW * -0.5, cross),
           /*
-           * 0.40, not the 0.62 the arc looks like it wants. The camera is tilted
-           * down onto the aim point, so a climb in world Y lifts more than its
-           * share of the frame — measured, 0.62 of the half-height projects to
-           * 0.69 of it. The pin also releases while the aircraft is still near
-           * the top of the arc, so the section is already scrolling under it,
-           * and anything higher loses the fin off the top of the viewport. At
-           * 1280x800 — the shortest section this runs on, since the whole thing
-           * drops out under 1100 — 0.40 left the fin about 10px clear, which is
-           * no margin at all.
+           * 0.40, not the 0.62 the arc appears to want. The camera tilts down
+           * onto the aim point, so a climb in world Y takes more than its share
+           * of the frame (0.62 of the half-height projects to 0.69), and the
+           * pin releases while the aircraft is still high, so the section is
+           * already scrolling under it. Anything higher loses the fin.
            */
           halfH * 0.35 * climb,
           // Swings toward the viewer through the turn, then draws away.

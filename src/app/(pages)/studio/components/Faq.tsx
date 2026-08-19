@@ -8,21 +8,15 @@ import { FAQS } from "../data";
  * rather than animated to `auto`, which CSS cannot transition.
  */
 export default function Faq() {
-  /*
-   * The first answer starts open. Left all-closed the section arrives as six
-   * questions and no answers — the reader has to work before it gives them
-   * anything, and the whole block reads as unfinished. One open panel also
-   * shows what the plus signs do without anyone having to guess.
-   */
+  /* First answer starts open, so the section arrives with something to read
+     and the plus signs explain themselves. */
   const [open, setOpen] = useState<number | null>(0);
   const bodies = useRef<Array<HTMLDivElement | null>>([]);
 
   /*
-   * Heights come from a ref, which is still null while the first render runs —
-   * so the panel that starts open would paint at zero height and never recover
-   * on its own. This forces one re-measure once the refs exist, and a second
-   * once the fonts have landed, because the answer's wrapped height changes
-   * when the real face replaces the fallback.
+   * Heights come from a ref, still null on the first render — so the panel
+   * that starts open would paint at zero height. Re-measure once the refs
+   * exist, and again once fonts land and the wrapped height changes.
    */
   const [, remeasure] = useState(0);
   useEffect(() => {

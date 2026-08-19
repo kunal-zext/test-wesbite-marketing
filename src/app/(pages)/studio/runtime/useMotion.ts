@@ -85,14 +85,12 @@ function splitWords(root: HTMLElement | null): HTMLElement[] {
 /**
  * Every scroll-driven effect on the page.
  *
- * GSAP and ScrollTrigger are imported dynamically so they stay out of the
- * initial bundle; if the import fails or the visitor prefers reduced motion,
- * `showAll()` reveals every `data-r` element and the page degrades to a normal
- * static document.
+ * GSAP and ScrollTrigger load dynamically, out of the initial bundle. If the
+ * import fails or the visitor prefers reduced motion, `showAll()` reveals
+ * every `data-r` element and the page degrades to a static document.
  *
- * ScrollTrigger is driven by the app-wide Lenis instance from LayoutWrapper —
- * we only forward its scroll events. Creating a second Lenis here (as the
- * original artifact did) would fight the existing one for the wheel.
+ * Driven by the app-wide Lenis from LayoutWrapper — forward its scroll events
+ * rather than creating a second instance, which would fight it for the wheel.
  */
 export function useMotion(
   root: React.RefObject<HTMLElement | null>,
@@ -234,17 +232,11 @@ export function useMotion(
       /*
        * Refresh order for the pinned sections, highest first.
        *
-       * A pin adds a spacer the height of its own scroll range, so every pin
-       * moves everything below it further down the document. ScrollTrigger
-       * therefore has to measure them from the top of the page downwards; left
-       * to itself it measures them in the order they were *created*, and these
-       * are not created in document order — which meant the metrics pin
-       * computed its start before the pins above it had claimed their space
-       * and engaged around three thousand pixels early, covering the section
-       * above it with a fixed panel.
+       * Each pin adds a spacer that pushes everything below it down, so pins
+       * must be measured top-down. ScrollTrigger otherwise measures them in
+       * creation order, and these are not created in document order.
        *
-       * Keep these numbers in the same order as the sections in page.tsx. If a
-       * section moves, move its number with it.
+       * Keep in step with the running order in page.tsx.
        */
       const PIN_ORDER = {
         nerve: 5,
@@ -381,17 +373,12 @@ export function useMotion(
       const nerve = q('nerveword');
       if (nerve) {
         /*
-         * The word is not animated in — it is behind the glass the whole time,
-         * and the scroll's only job is to take the glass off it.
+         * The word is never animated in. It sits behind the glass the whole
+         * time and the scroll only takes the glass off it, so it never has to
+         * read against the panes and the backing at once.
          *
-         * That is a simpler idea than throwing letters at the panel, and it
-         * removes the problem that kept coming back: a letter in front of the
-         * glass has to read against both the panes and whatever is behind
-         * them, and no single colour does. Hidden, it has nothing to fight.
-         *
-         * The panes go in order of distance from the centre, so the break
-         * radiates and the word is uncovered from the middle out rather than
-         * side to side.
+         * Panes leave in order of distance from the centre, so the break
+         * radiates and the word is uncovered middle-out.
          */
         const panes = Array.from(
           el.querySelectorAll<SVGPolygonElement>('.zx-shard'),
@@ -552,14 +539,12 @@ export function useMotion(
 
       /* ---- metrics tape ----------------------------------------------- */
       /*
-       * A horizontal tape of display-scale values slides so that each takes
-       * the centre of the viewport in turn; the centred one fills solid while
-       * its neighbours stand as outlines. The copy below travels vertically
-       * with the same progress figure, so the two tracks read as one machine.
+       * The tape slides each value to the centre in turn, filling it solid
+       * while its neighbours stay outlined. The copy below runs on the same
+       * progress figure, so the two tracks read as one machine.
        *
-       * The timeline alternates a move with a hold rather than running one
-       * continuous sweep — the hold is what makes it read as a value arriving,
-       * being shown, and then leaving.
+       * The timeline alternates move and hold; the hold is what makes a value
+       * read as arriving, being shown, then leaving.
        */
       function initStats(instant: boolean) {
         const reel = q("mreel");
@@ -702,14 +687,10 @@ export function useMotion(
 
       /* ---- the stack --------------------------------------------------- */
       /*
-       * Six slabs, slammed into a stack one at a time. Each owns a 1/N slice
-       * of the pin: it waits off to one side, flies in as its slice passes,
-       * and takes a short overshoot on impact before settling — which is what
-       * makes it read as landing rather than arriving.
-       *
-       * Sides alternate so the stack builds from both directions instead of
-       * marching in from one, and the slab that landed most recently stays lit
-       * while the ones under it settle back.
+       * Six plates slammed into a stack, one per 1/N slice of the pin: each
+       * waits off to one side, flies in on its slice and overshoots briefly on
+       * impact, which is what makes it read as landing. Sides alternate, and
+       * the plate that landed most recently stays lit.
        */
       function initBuild() {
         const sec = q("bld");
@@ -722,27 +703,21 @@ export function useMotion(
         if (!sec || !pin || !n) return;
 
         /*
-         * Hand every plate its own band of the picture. Measured rather than
-         * assumed: the plates are laid out by content, so their heights are
-         * not identical and a computed fraction would misalign the bands.
-         * Re-run on refresh, because the type — and so the heights — change
-         * with the viewport.
+         * Hand every plate its own band of the shared light field. Measured,
+         * not computed: plate heights follow their content, so a fixed
+         * fraction would misalign the bands. Re-run on refresh.
          */
         const cut = () => {
           if (!stack) return;
-          // Layout metrics, not bounding boxes: the plates are transformed off
-          // to the sides while they wait, and a measured rect would hand them
-          // bands cut from wherever they currently sit rather than from where
-          // they will land. offsetTop is untouched by transforms.
+          // offsetTop, not getBoundingClientRect: the plates are transformed
+          // off to the sides while they wait, and a measured rect would cut
+          // their band from wherever they currently sit.
           const h = stack.offsetHeight;
           const first = bays[0];
           if (!h || !first || bays.length !== slabs.length) return;
           slabs.forEach((slab, i) => {
-            // Measured off the bays, not the plates. The bays are the stack's
-            // real layout — they never move — whereas each plate is positioned
-            // inside its own bay and so reports an offsetTop of zero. Taking
-            // the first bay as the origin keeps this correct however the stack
-            // above it is positioned.
+            // Off the bays, which are the stack's real layout. Each plate is
+            // positioned inside its own bay and so reports an offsetTop of 0.
             const y = bays[i].offsetTop - first.offsetTop;
             slab.style.setProperty("--bgh", h.toFixed(1) + "px");
             slab.style.setProperty("--bgy", (-y).toFixed(1) + "px");
@@ -796,6 +771,42 @@ export function useMotion(
           return;
         }
 
+        /*
+         * Pin only if the whole section fits the screen. A pinned block is
+         * fixed to the top of the viewport, so whatever overflows the fold —
+         * the last plate — can never be scrolled to.
+         *
+         * Measured rather than taken from a breakpoint, so it holds at window
+         * sizes nobody listed.
+         */
+        const fits = () =>
+          pin.getBoundingClientRect().height <= window.innerHeight + 1;
+
+        if (!fits()) {
+          /*
+           * The same choreography, scrubbed against the section's own passage
+           * up the viewport instead of a pin. One trigger driving place(), not
+           * one per plate: the plates are only ~70px apart, so six independent
+           * enter-triggers all cross the same line within a few hundred pixels
+           * and the stack arrives in a single clump.
+           *
+           * The range runs from the section entering to it most of the way
+           * out, which gives each plate roughly a fifth of a screen to land in.
+           */
+          place(0);
+          ScrollTrigger.create({
+            trigger: sec,
+            start: "top 85%",
+            end: "bottom 55%",
+            scrub: 0.6,
+            invalidateOnRefresh: true,
+            refreshPriority: PIN_ORDER.build,
+            onRefresh: cut,
+            onUpdate: (self) => place(self.progress),
+          });
+          return;
+        }
+
         place(0);
         ScrollTrigger.create({
           trigger: sec,
@@ -814,18 +825,14 @@ export function useMotion(
 
       /* ---- the deck ---------------------------------------------------- */
       /*
-       * Four cards, thrown one at a time. The section pins and each card owns
-       * a 1/N slice of that pin: it waits in the deck, flings itself up and
-       * off the screen through its slice, and the cards behind it promote
-       * forward as it goes.
+       * Four cards thrown one at a time, each owning a 1/N slice of the pin
+       * while the ones behind promote forward.
        *
-       * Depth is continuous rather than stepped — a card's distance from the
-       * front is `i - progress * n`, so the ones waiting glide up the pile
-       * while the front one leaves, instead of snapping a place at a time.
+       * Depth is continuous, `i - progress * n`, so waiting cards glide up the
+       * pile instead of snapping a place at a time.
        *
-       * The deck only stacks once this runs. Until then (and forever under
-       * reduced motion) the cards stay in their CSS grid, which is why the
-       * section reads fine with no JavaScript.
+       * The deck only stacks once this runs; until then, and under reduced
+       * motion, the cards stay in their CSS grid.
        */
       function initPillars() {
         const sec = q("pil");
@@ -844,13 +851,8 @@ export function useMotion(
         });
 
         const place = (p: number) => {
-          /*
-           * Saturates at the last card rather than running past it. Left to
-           * reach n, the final card is thrown too and the section ends on an
-           * empty tray — the reader scrolls a whole screen of nothing before
-           * the pin lets go. Stopping one short spends that last slice
-           * holding on the closing claim instead.
-           */
+          /* Saturates one short of n, so the last card is never thrown and
+             the section ends holding its closing claim, not an empty tray. */
           const front = Math.min(p * n, n - 1);
           cards.forEach((card, i) => {
             const depth = i - front;
@@ -882,7 +884,9 @@ export function useMotion(
               xPercent: dir * 46 * t * t,
               rotate: dir * 17 * t,
               scale: 1 + t * 0.05,
-              opacity: 1 - Math.max(0, (t - 0.55) / 0.4),
+              // Opaque until 0.78, by which point the card has cleared the
+              // copy it flies over — fading sooner shows both at once.
+              opacity: 1 - Math.max(0, (t - 0.78) / 0.22),
             });
           });
           // Only the card in front runs its diagram; see the paused rule in
@@ -954,18 +958,14 @@ export function useMotion(
             n.dataset.on = i === idx ? "1" : "0";
           });
           /*
-           * The aeroplane. Assembly runs from Brief to Build and the flight
-           * belongs to Launch alone.
+           * The aeroplane: assembled across Brief→Build, flown on Launch.
            *
-           * Both gates are derived from where the steps actually change hands
-           * rather than from an even division of the scrub. The step index above
-           * rounds, so step n takes over at (n - 0.5) / last, not at n / last —
-           * gating the flight on the latter started it a half step early, with
-           * the aircraft already banking away while the copy still read BUILD.
+           * Both gates follow where the steps actually change hands. The index
+           * above rounds, so step n takes over at (n - 0.5) / last — using
+           * n / last starts the flight half a step early.
            *
-           * So: whole by the time Build lands, held there for that step, and
-           * away on Launch. Published to the shared store rather than written to
-           * the DOM, because the WebGL scene reads it every frame.
+           * Published to the shared store, not the DOM: the WebGL scene reads
+           * it every frame.
            */
           if (forms.length && last > 0) {
             const flyGate = (last - 0.5) / last;
